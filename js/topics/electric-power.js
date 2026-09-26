@@ -83,45 +83,6 @@
       { name: '電力量', symbol: 'W', value: Notation.number(r.energyKWh, 2), unit: 'kWh', cls: 'q-active' },
       { name: '出る熱', symbol: 'Q', value: Notation.number(r.heatKJ, 0), unit: 'kJ' },
     ],
-    // ミッション：つまみを動かして目標に合わせる（答えがつまみの目盛りに乗る数だけを出す）
-    missions: [
-      {
-        free: 'R',
-        cases: [[100, 500], [100, 400], [100, 250], [100, 200], [100, 125], [100, 100], [200, 2000], [200, 1000], [200, 800], [200, 500], [200, 400]].map(([V, P]) => ({ V, P })),
-        setup: ({ V }) => ({ V }),
-        answer: ({ V, P }) => (V * V) / P,
-        text: ({ P }) => `電力をちょうど ${Notation.number(P, 0)} W にしよう`,
-        how: ({ V }) => `電圧は ${V} V のまま。抵抗 <var>R</var> を動かす`,
-        now: (r) => `いま ${Notation.number(r.P, 0)} W`,
-        hit: (r, { P }) => Math.abs(r.P - P) < 1e-6,
-        reason: ({ V, P }) => `<var>P</var> = <var>V</var>²/<var>R</var> = ${V}² ÷ ${(V * V) / P} = ${Notation.number(P, 0)} W。電圧が同じなら、抵抗が小さいほど電力は大きい。`,
-      },
-      {
-        free: 'V',
-        cases: [[25, 400], [25, 100], [25, 900], [25, 1600], [50, 200], [50, 800], [50, 50], [40, 1000], [40, 250], [20, 500], [80, 500]].map(([R, P]) => ({ R, P })),
-        setup: ({ R }) => ({ R }),
-        answer: ({ R, P }) => Math.sqrt(P * R),
-        text: ({ P }) => `電力をちょうど ${Notation.number(P, 0)} W にしよう`,
-        how: ({ R }) => `抵抗は ${R} Ω のまま。電圧 <var>V</var> を動かす`,
-        now: (r) => `いま ${Notation.number(r.P, 0)} W`,
-        hit: (r, { P }) => Math.abs(r.P - P) < 1e-6,
-        reason: ({ R, P }) => `<var>P</var> = <var>V</var>²/<var>R</var> なので <var>V</var> = √(${Notation.number(P, 0)} × ${R}) = ${Math.sqrt(P * R)} V。電圧を2倍にすると電力は4倍。`,
-      },
-      {
-        free: 't',
-        cases: [[100, 25, 1], [100, 25, 2], [100, 25, 3], [100, 25, 4], [100, 20, 1], [100, 20, 2.5], [100, 50, 1], [100, 50, 0.5], [200, 40, 3], [200, 100, 2]].map(([V, R, W]) => ({ V, R, W })),
-        setup: ({ V, R }) => ({ V, R }),
-        answer: ({ V, R, W }) => (W * 1000) / ((V * V) / R),
-        text: ({ W }) => `電力量をちょうど ${W} kWh にしよう`,
-        how: ({ V, R }) => `電力 ${Notation.number((V * V) / R, 0)} W のまま（${V} V・${R} Ω）。使う時間 <var>t</var> を動かす`,
-        now: (r) => `いま ${Notation.number(r.energyKWh, 2)} kWh`,
-        hit: (r, { W }) => Math.abs(r.energyKWh - W) < 1e-9,
-        reason: ({ V, R, W }) => {
-          const P = (V * V) / R;
-          return `<var>W</var> = <var>Pt</var> = ${Notation.number(P, 0)} W × ${(W * 1000) / P} h = ${Notation.number(W * 1000, 0)} Wh = ${W} kWh。`;
-        },
-      },
-    ],
     terms: [
       ['電力 <var>P</var>', '1秒あたりに電気がする仕事（熱・光・動力）の量。単位は W（ワット）。1,000 W = 1 kW。'],
       ['電力量 <var>W</var>', '電力 × 使った時間。電気料金はこれで決まる。単位は kWh（キロワット時）。記号の <var>W</var>（電力量）と単位の W（ワット）は別もの。'],

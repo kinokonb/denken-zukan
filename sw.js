@@ -32,6 +32,7 @@ const ASSETS = [
   'js/plays/kit.js',
   'js/plays/ohm.js',
   'js/plays/series-parallel.js',
+  'js/plays/electric-power.js',
   'js/app.js',
 ];
 

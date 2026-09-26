@@ -192,12 +192,16 @@
     return g;
   }
 
-  // 電熱線（縦の抵抗）。level は決まった熱さを 1 とした熱さで、電球と同じ光のにじみになる
-  function heater(parent, x, y, { level = 0 } = {}) {
+  // 電熱線（縦の抵抗）。level は決まった熱さを 1 とした熱さで、電球と同じ光のにじみになる。broken は焼き切れた電熱線（真ん中が切れて焦げる）
+  function heater(parent, x, y, { level = 0, broken = false } = {}) {
     const g = el(parent, 'g', { class: 'heater' });
     const heat = Math.min(level, 1.5);
     if (heat > 0) el(g, 'circle', { cx: x, cy: y, r: 14 + 18 * heat, fill: 'url(#lamp-glow)', opacity: Math.min(1, 0.2 + 0.8 * heat) });
     resistor(g, x, y, { vertical: true });
+    if (broken) {
+      el(g, 'rect', { x: x - 10, y: y - 3, width: 20, height: 6, class: 'cut' });
+      el(g, 'circle', { cx: x, cy: y, r: 3.5, class: 'fuse-scorch' });
+    }
     return g;
   }
 
@@ -212,6 +216,14 @@
     } else {
       el(g, 'line', { x1: x - 14, y1: y, x2: x + 14, y2: y, class: 'fuse-element' });
     }
+    return g;
+  }
+
+  // ブレーカー（横の導線の上の箱と、中のレバー）。tripped は落ちた（レバーが上がって切れた）ブレーカー
+  function breaker(parent, x, y, { tripped = false } = {}) {
+    const g = el(parent, 'g', { class: `breaker${tripped ? ' tripped' : ''}` });
+    el(g, 'rect', { x: x - 18, y: y - 17, width: 36, height: 24, rx: 2, class: 'breaker-box' });
+    knifeSwitch(g, x, y, { on: tripped ? 0 : 1 });
     return g;
   }
 
@@ -273,6 +285,6 @@
 
   global.Svg = {
     el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, resistor, flowDots, splitBar,
-    glowDefs, lamp, heater, fuse, knifeSwitch, gauge, leads,
+    glowDefs, lamp, heater, fuse, breaker, knifeSwitch, gauge, leads,
   };
 })(this);

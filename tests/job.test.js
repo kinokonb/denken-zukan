@@ -11,6 +11,7 @@ const Job = require('../js/job.js');
 const lessons = [
   ['オームの法則', require('../js/plays/ohm.js')],
   ['直列と並列', require('../js/plays/series-parallel.js')],
+  ['電力と電力量', require('../js/plays/electric-power.js')],
 ];
 
 // 再現できる乱数（mulberry32）
