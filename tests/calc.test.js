@@ -9,6 +9,7 @@ const DcCircuit = require('../js/calc/dc-circuit.js');
 const AcWave = require('../js/calc/ac-wave.js');
 const Phasor = require('../js/calc/phasor.js');
 const Capacitor = require('../js/calc/capacitor.js');
+const Coulomb = require('../js/calc/coulomb.js');
 
 const near = (actual, expected, tolerance, label) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} は ${expected}±${tolerance} ではない`);
@@ -168,6 +169,13 @@ test('平行平板コンデンサ：100 cm²・1 mm で約 88.5 pF。間隔2倍�
   near(off.V, 200, 1e-9, '外した V');
   near(off.E, 100 / 1e-3, 1e-6, '外した E（同じ）');
   near(off.W / Capacitor.state({ C: C0, C0, V0: 100, connected: false, d: 1e-3 }).W, 2, 1e-12, '外した W は2倍');
+});
+
+test('クーロンの法則：1 μC どうし 0.3 m で 0.1 N、距離2倍で 1/4、異符号は引き合う（負）。1 μC から 0.3 m の電界は 10⁵ V/m', () => {
+  near(Coulomb.force(1, 1, 0.3), 0.1, 1e-12, 'F');
+  near(Coulomb.force(1, 1, 0.6), 0.025, 1e-12, '距離2倍');
+  assert.ok(Coulomb.force(1, -1, 0.3) < 0);
+  near(Coulomb.field(1, 0.3), 1e5, 1e-6, 'E');
 });
 
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };

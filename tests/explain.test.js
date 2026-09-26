@@ -13,6 +13,7 @@ globalThis.PowerFactor = require('../js/calc/power-factor.js');
 globalThis.AcWave = require('../js/calc/ac-wave.js');
 globalThis.Phasor = require('../js/calc/phasor.js');
 globalThis.Capacitor = require('../js/calc/capacitor.js');
+globalThis.Coulomb = require('../js/calc/coulomb.js');
 const lessons = [
   require('../js/topics/math-formula.js').TopicMathFormula,
   require('../js/topics/math-proportion.js').TopicMathProportion,
@@ -35,6 +36,7 @@ const lessons = [
   require('../js/topics/rlc-elements.js').TopicRlcElements,
   require('../js/topics/rlc.js').TopicRlc,
   require('../js/topics/ac-power.js').TopicAcPower,
+  require('../js/topics/coulomb.js').TopicCoulomb,
   require('../js/topics/plate-capacitor.js').TopicPlateCapacitor,
   require('../js/topics/voltage-drop.js').TopicVoltageDrop,
   require('../js/topics/induction-motor.js').TopicInductionMotor,

@@ -17,7 +17,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const outDir = path.resolve(process.argv[2] || os.tmpdir());
 const publishedUrl = process.argv[3];
 const BASICS = ['math-formula', 'math-proportion', 'math-prefix', 'math-square', 'science-charge', 'science-energy', 'math-pythagoras', 'math-trig', 'math-vector', 'math-wave']; // 基礎（数学・理科）：ミッションのないレッスン
-const TOPICS = [...BASICS, 'ohm', 'series-parallel', 'electric-power', 'kirchhoff', 'bridge', 'internal-resistance', 'ac-rms', 'phasor', 'rlc-elements', 'rlc', 'ac-power', 'plate-capacitor', 'voltage-drop', 'induction-motor', 'power-factor'];
+const TOPICS = [...BASICS, 'ohm', 'series-parallel', 'electric-power', 'kirchhoff', 'bridge', 'internal-resistance', 'ac-rms', 'phasor', 'rlc-elements', 'rlc', 'ac-power', 'coulomb', 'plate-capacitor', 'voltage-drop', 'induction-motor', 'power-factor'];
 const MOVING = ['science-charge', 'math-wave', 'ohm', 'series-parallel', 'kirchhoff', 'bridge', 'internal-resistance', 'ac-rms', 'phasor', 'rlc-elements', 'rlc', 'ac-power', 'induction-motor']; // 開いたら自動で動くテーマ
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
