@@ -11,6 +11,7 @@
       units: [
         { name: '数と式', topics: [TopicMathFormula, TopicMathProportion, TopicMathPrefix, TopicMathSquare] },
         { name: '理科', topics: [TopicScienceCharge, TopicScienceEnergy] },
+        { name: '図形と波', topics: [TopicMathPythagoras, TopicMathTrig] },
       ],
     },
     {

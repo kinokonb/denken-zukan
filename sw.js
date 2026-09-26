@@ -28,6 +28,8 @@ const ASSETS = [
   'js/topics/math-square.js',
   'js/topics/science-charge.js',
   'js/topics/science-energy.js',
+  'js/topics/math-pythagoras.js',
+  'js/topics/math-trig.js',
   'js/topics/ohm.js',
   'js/topics/series-parallel.js',
   'js/topics/electric-power.js',
