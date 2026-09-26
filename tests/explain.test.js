@@ -25,6 +25,7 @@ const lessons = [
   require('../js/topics/series-parallel.js').TopicSeriesParallel,
   require('../js/topics/electric-power.js').TopicElectricPower,
   require('../js/topics/kirchhoff.js').TopicKirchhoff,
+  require('../js/topics/bridge.js').TopicBridge,
   require('../js/topics/rlc.js').TopicRlc,
   require('../js/topics/voltage-drop.js').TopicVoltageDrop,
   require('../js/topics/induction-motor.js').TopicInductionMotor,

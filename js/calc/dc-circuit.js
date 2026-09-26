@@ -61,9 +61,25 @@
     return { VA, I1: (E1 - VA) / R1, I2: (E2 - VA) / R2, I3: VA / R3 };
   }
 
+  // ブリッジ回路：上の点から左の辺 R1・R2（間が点C）と右の辺 R3・R4（間が点D）が下の点へ。C と D の間に検流計（抵抗 Rg）。
+  // 検流計を外した時の C・D の電位（分圧）と、テブナンの定理でまとめた検流計の電流 Ig（C → D を正）を求め、
+  // Ig が流れた後の C・D の電位と4本の辺の電流、電池の電流を返す。R1R4 = R2R3（対辺の積が等しい）なら Ig = 0（つり合い）
+  function bridge({ E, R1, R2, R3, R4, Rg }) {
+    const openC = (E * R2) / (R1 + R2);
+    const openD = (E * R4) / (R3 + R4);
+    const RC = (R1 * R2) / (R1 + R2);
+    const RD = (R3 * R4) / (R3 + R4);
+    const Ig = (openC - openD) / (RC + RD + Rg);
+    const VC = openC - Ig * RC;
+    const VD = openD + Ig * RD;
+    const I1 = (E - VC) / R1;
+    const I3 = (E - VD) / R3;
+    return { openC, openD, Ig, VC, VD, I1, I2: VC / R2, I3, I4: VD / R4, I: I1 + I3 };
+  }
+
   const DcCircuit = {
     ohm, seriesResistance, parallelResistance, seriesAndParallel, power,
-    lampWithSeriesResistor, parallelLamps, seriesLampsWithBreak, twoSources,
+    lampWithSeriesResistor, parallelLamps, seriesLampsWithBreak, twoSources, bridge,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = DcCircuit;
   else global.DcCircuit = DcCircuit;
