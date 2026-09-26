@@ -111,6 +111,48 @@
       { name: '並列の合成抵抗', symbol: 'R', value: Notation.number(r.parallel.R, 1), unit: 'Ω', cls: 'q-active' },
       { name: '並列の電流', symbol: 'I', value: Notation.number(r.parallel.I, 2), unit: 'A', cls: 'q-current' },
     ],
+    // ミッション：つまみを動かして目標に合わせる（答えがつまみの目盛りに乗る数だけを出す）
+    missions: [
+      {
+        free: 'R2',
+        cases: [[6, 4], [12, 4], [10, 5], [4, 3], [20, 12], [6, 3], [30, 10], [12, 8], [15, 10], [8, 6]].map(([R1, Rp]) => ({ R1, Rp })),
+        setup: ({ R1 }) => ({ V: 12, R1 }),
+        answer: ({ R1, Rp }) => (R1 * Rp) / (R1 - Rp),
+        text: ({ Rp }) => `並列の合成抵抗をちょうど ${Rp} Ω にしよう`,
+        how: ({ R1 }) => `<var>R</var><sub>1</sub> は ${R1} Ω のまま。<var>R</var><sub>2</sub> を動かす`,
+        now: (r) => `いま ${Notation.number(r.parallel.R, 2)} Ω`,
+        hit: (r, { Rp }) => Math.abs(r.parallel.R - Rp) < 1e-9,
+        reason: ({ R1, Rp }) => {
+          const R2 = (R1 * Rp) / (R1 - Rp);
+          return `和分の積：${R1} × ${R2} ÷ (${R1} + ${R2}) = ${Rp} Ω。並列の合成は小さい方の ${Math.min(R1, R2)} Ω より小さくなる。`;
+        },
+      },
+      {
+        free: 'R2',
+        cases: [[12, 4, 3], [12, 4, 4], [12, 4, 6], [12, 4, 8], [24, 6, 8], [24, 10, 12], [24, 6, 6], [12, 10, 4], [12, 6, 3]].map(([V, R1, V1]) => ({ V, R1, V1 })),
+        setup: ({ V, R1 }) => ({ V, R1 }),
+        answer: ({ V, R1, V1 }) => (R1 * (V - V1)) / V1,
+        text: ({ V1 }) => `直列で <var>R</var><sub>1</sub> にかかる電圧をちょうど ${V1} V にしよう`,
+        how: ({ V, R1 }) => `電池 ${V} V・<var>R</var><sub>1</sub> ${R1} Ω のまま。<var>R</var><sub>2</sub> を動かす`,
+        now: (r) => `いま ${Notation.number(r.series.V1, 2)} V`,
+        hit: (r, { V1 }) => Math.abs(r.series.V1 - V1) < 1e-9,
+        reason: ({ V, R1, V1 }) => {
+          const R2 = (R1 * (V - V1)) / V1;
+          return `電圧は抵抗の比 ${R1} : ${R2} で分かれるので、<var>R</var><sub>1</sub> には ${V} V の ${R1}/${R1 + R2} = ${V1} V。`;
+        },
+      },
+      {
+        free: 'R1',
+        cases: [[12, 12, 4], [12, 12, 3], [12, 12, 5], [12, 12, 7], [12, 6, 5], [12, 6, 3], [24, 24, 5], [24, 12, 4]].map(([V, R2, I]) => ({ V, R2, I })),
+        setup: ({ V, R2 }) => ({ V, R2 }),
+        answer: ({ V, R2, I }) => V / (I - V / R2),
+        text: ({ I }) => `並列の全体の電流をちょうど ${I} A にしよう`,
+        how: ({ V, R2 }) => `電池 ${V} V・<var>R</var><sub>2</sub> ${R2} Ω のまま。<var>R</var><sub>1</sub> を動かす`,
+        now: (r) => `いま ${Notation.number(r.parallel.I, 2)} A`,
+        hit: (r, { I }) => Math.abs(r.parallel.I - I) < 1e-9,
+        reason: ({ V, R2, I }) => `<var>R</var><sub>2</sub> の枝に ${V} ÷ ${R2} = ${V / R2} A、残りの ${I - V / R2} A が <var>R</var><sub>1</sub> の枝（${V} ÷ ${V / (I - V / R2)}）。並列の電流は枝の足し算。`,
+      },
+    ],
     terms: [
       ['直列', '抵抗を1列につなぐこと。電流の通り道は1本なので、どの抵抗にも同じ電流が流れる。'],
       ['並列', '抵抗を枝分かれさせてつなぐこと。どの枝にも電池の電圧がそのままかかる。'],

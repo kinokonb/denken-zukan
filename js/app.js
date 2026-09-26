@@ -126,7 +126,7 @@
                 <a class="topic-link" href="#/topic/${topic.id}">
                   <svg class="thumb" data-topic="${topic.id}" aria-hidden="true"></svg>
                   <span class="topic-text">
-                    <span class="topic-number">${subject.name}${number}</span>
+                    <span class="topic-number">${subject.name}${number}${missionRecords()[topic.id] ? '<span class="cleared-mark">ミッション ○</span>' : ''}</span>
                     <span class="topic-title">${topic.title}</span>
                     <span class="topic-lead">${topic.lead}</span>
                   </span>
@@ -171,7 +171,13 @@
             </figcaption>
           </figure>
           <dl class="readouts"></dl>
+          ${topic.missions ? missionPanelHtml() : ''}
         </div>
+        ${topic.missions ? `
+          <section class="mission-entry">
+            <button type="button" class="mission-start">ミッション ${Mission.SET_SIZE}問に挑戦</button>
+            <span class="mission-record"></span>
+          </section>` : ''}
         ${triesHtml(topic)}
         <div class="controls">
           ${topic.params.map(controlHtml).join('')}
@@ -217,10 +223,13 @@
       params[key] = input.valueAsNumber;
     }
 
+    const missionPlay = topic.missions ? createMissionPlay({ topic, params, inputs, setParam, update: () => update() }) : null;
+
     for (const input of inputs) {
       input.addEventListener('input', () => {
         params[input.dataset.key] = input.valueAsNumber;
         update();
+        missionPlay?.check();
       });
     }
     view.querySelector('.presets').addEventListener('click', (event) => {
@@ -259,6 +268,182 @@
 
     update();
     motion.start();
+  }
+
+  // ---- ミッション（つまみを動かして目標に合わせる1セット） ----
+
+  function missionPanelHtml() {
+    return `
+      <div class="mission-panel" hidden aria-live="polite">
+        <div class="mission-head">
+          <span class="mission-count"></span>
+          <span class="mission-time"></span>
+          <span class="mission-actions">
+            <button type="button" class="mission-quit">やめる</button>
+            <button type="button" class="mission-next" hidden></button>
+            <button type="button" class="mission-again" hidden>もう1セット</button>
+          </span>
+        </div>
+        <p class="mission-text"></p>
+        <p class="mission-sub"></p>
+      </div>`;
+  }
+
+  // クリアの記録（端末のブラウザにだけ覚える）：{ レッスンid: { clears, best（秒） } }
+  const MISSION_RECORD_KEY = 'denken-zukan:missions';
+
+  function missionRecords() {
+    try { return JSON.parse(localStorage.getItem(MISSION_RECORD_KEY)) || {}; } catch { return {}; }
+  }
+
+  function saveMissionClear(id, seconds) {
+    const records = missionRecords();
+    const before = records[id] || { clears: 0, best: null };
+    const isBest = before.best === null || seconds < before.best;
+    records[id] = { clears: before.clears + 1, best: isBest ? seconds : before.best };
+    try { localStorage.setItem(MISSION_RECORD_KEY, JSON.stringify(records)); } catch { /* 保存できない開き方でも遊べる */ }
+    return { ...records[id], isBest };
+  }
+
+  function formatSeconds(seconds) {
+    const whole = Math.round(seconds);
+    return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
+  }
+
+  // 1問ずつ：固定するつまみを締め、動かすつまみを始めの値にする → 当たったら丸と理由 → 次へ。5問でタイムと記録
+  function createMissionPlay({ topic, params, inputs, setParam, update }) {
+    const panel = view.querySelector('.mission-panel');
+    const entry = view.querySelector('.mission-entry');
+    const $ = (selector) => panel.querySelector(selector);
+    let set = null;
+    let index = 0;
+    let solved = false;
+    let startedAt = 0;
+    let timer = null;
+
+    function showRecord() {
+      const record = missionRecords()[topic.id];
+      entry.querySelector('.mission-record').textContent = record ? `クリア ${record.clears}回・ベスト ${formatSeconds(record.best)}` : 'まだクリアなし';
+    }
+
+    // freeKey のつまみだけ動かせるようにする（null ならすべて止める）
+    function lockExcept(freeKey) {
+      for (const input of inputs) {
+        const free = input.dataset.key === freeKey;
+        input.disabled = !free;
+        input.closest('.control').classList.toggle('locked', !free);
+        input.closest('.control').classList.toggle('free', free);
+      }
+    }
+
+    function unlockAll() {
+      for (const input of inputs) {
+        input.disabled = false;
+        input.closest('.control').classList.remove('locked', 'free');
+      }
+    }
+
+    function showTime() {
+      if (!panel.isConnected) { clearInterval(timer); return; }
+      $('.mission-time').textContent = formatSeconds((performance.now() - startedAt) / 1000);
+    }
+
+    function begin() {
+      set = Mission.buildSet(topic);
+      index = 0;
+      startedAt = performance.now();
+      clearInterval(timer);
+      timer = setInterval(showTime, 500);
+      showTime();
+      view.classList.add('in-mission');
+      panel.hidden = false;
+      $('.mission-again').hidden = true;
+      $('.mission-quit').textContent = 'やめる';
+      showMission();
+      // 動かすつまみが見える所まで下げる（図は上に残る）
+      const free = inputs.find((i) => !i.disabled);
+      if (free) free.closest('.control').scrollIntoView({ block: 'end', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    }
+
+    function showMission() {
+      const mission = set[index];
+      const template = topic.missions[mission.templateIndex];
+      for (const [key, value] of Object.entries({ ...Mission.initialParams(topic), ...mission.fixed, [mission.free]: mission.start })) setParam(key, value);
+      lockExcept(mission.free);
+      solved = false;
+      panel.classList.remove('solved', 'cleared');
+      $('.mission-count').textContent = `ミッション ${index + 1} / ${set.length}`;
+      $('.mission-text').innerHTML = template.text(mission.values);
+      $('.mission-next').hidden = true;
+      $('.mission-quit').hidden = false;
+      update();
+      showProgress(template, mission);
+    }
+
+    function showProgress(template, mission) {
+      const result = topic.compute(params);
+      $('.mission-sub').innerHTML = `${template.how(mission.values)}　<strong>${template.now(result)}</strong>`;
+    }
+
+    function check() {
+      if (!set || solved) return;
+      const mission = set[index];
+      const template = topic.missions[mission.templateIndex];
+      if (!Mission.isHit(topic, mission, params)) {
+        showProgress(template, mission);
+        return;
+      }
+      solved = true;
+      lockExcept(null); // 当たったら、つまみはすべて止める
+      panel.classList.add('solved');
+      $('.mission-sub').innerHTML = `<strong>○ ぴったり</strong>　${template.reason(mission.values)}`;
+      $('.mission-next').textContent = index + 1 < set.length ? '次へ ›' : 'けっか ›';
+      $('.mission-next').hidden = false;
+      $('.mission-quit').hidden = true;
+    }
+
+    function next() {
+      index += 1;
+      if (index < set.length) showMission();
+      else finish();
+    }
+
+    function finish() {
+      clearInterval(timer);
+      const seconds = (performance.now() - startedAt) / 1000;
+      const record = saveMissionClear(topic.id, seconds);
+      set = null;
+      panel.classList.remove('solved');
+      panel.classList.add('cleared');
+      $('.mission-count').textContent = 'クリア';
+      $('.mission-time').textContent = formatSeconds(seconds);
+      $('.mission-text').textContent = `${Mission.SET_SIZE}問クリア！ ${formatSeconds(seconds)}`;
+      $('.mission-sub').textContent = record.isBest ? `ベスト更新（クリア ${record.clears}回目）` : `ベスト ${formatSeconds(record.best)}（クリア ${record.clears}回目）`;
+      $('.mission-next').hidden = true;
+      $('.mission-again').hidden = false;
+      $('.mission-quit').hidden = false;
+      $('.mission-quit').textContent = '閉じる';
+      unlockAll();
+      showRecord();
+    }
+
+    function quit() {
+      clearInterval(timer);
+      set = null;
+      panel.hidden = true;
+      view.classList.remove('in-mission');
+      unlockAll();
+      for (const [key, value] of Object.entries(Mission.initialParams(topic))) setParam(key, value);
+      update();
+    }
+
+    entry.querySelector('.mission-start').addEventListener('click', begin);
+    $('.mission-next').addEventListener('click', next);
+    $('.mission-again').addEventListener('click', begin);
+    $('.mission-quit').addEventListener('click', quit);
+    showRecord();
+
+    return { check };
   }
 
   // 動く図の再生。time は再生している間だけ進む（止めると、その瞬間の姿で止まる）。

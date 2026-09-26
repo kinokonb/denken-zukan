@@ -13,6 +13,7 @@ const ASSETS = [
   'js/version.js',
   'js/notation.js',
   'js/svg.js',
+  'js/mission.js',
   'js/calc/rlc.js',
   'js/calc/voltage-drop.js',
   'js/calc/induction-motor.js',

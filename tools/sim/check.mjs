@@ -131,6 +131,7 @@ async function run(colorScheme) {
       }, i);
       expect(answered, `${colorScheme} ${id}: 確かめ問題${i + 1}の答えが正しく出ない`);
     }
+    await checkMissions(page, id, colorScheme);
     expect((await page.locator('.terms .term').count()) >= 3, `${colorScheme} ${id}: ことばが3つ未満`);
     await page.locator('.terms summary').click();
     expect(await page.locator('.terms').evaluate((d) => d.open), `${colorScheme} ${id}: ことばが開かない`);
@@ -145,8 +146,9 @@ async function run(colorScheme) {
     }
   }
 
-  // 目次に、最後に開いたレッスンが「前回の続き」として出る
+  // 目次に、最後に開いたレッスンが「前回の続き」として出る。ミッションをクリアしたレッスンには印
   await page.goto(base);
+  expect((await page.locator('.cleared-mark').count()) === WITH_MISSIONS.length, `${colorScheme}: 目次にクリアの印が ${WITH_MISSIONS.length} こない`);
   const resume = await page.locator('.start-link').evaluate((a) => ({ text: a.textContent, href: a.getAttribute('href') }));
   expect(resume.text.includes('前回の続き') && resume.href === `#/topic/${TOPICS[TOPICS.length - 1]}`, `${colorScheme}: 目次に前回の続きが出ない（${resume.text}）`);
 
@@ -184,6 +186,57 @@ async function checkMotion(page, id, label) {
   await toggle.click();
   await page.waitForTimeout(300);
   expect((await snapshot()) !== paused, `${label} ${id}: もう一度押しても動かない`);
+}
+
+// ミッション：始める → 動かせるのは1つのつまみだけ → 目盛りを順に動かすと当たりが出る（欄の高さは変わらない）
+// → 次へ … 5問でクリアと記録 → 閉じると元に戻る。ミッションのないレッスンには入口がない
+const WITH_MISSIONS = ['ohm', 'series-parallel', 'electric-power'];
+async function checkMissions(page, id, label) {
+  const start = page.locator('.mission-start');
+  if (!WITH_MISSIONS.includes(id)) {
+    expect((await start.count()) === 0, `${label} ${id}: ミッションのないレッスンに入口がある`);
+    return;
+  }
+  await start.click();
+  const stageHeight = await page.evaluate(() => document.querySelector('.stage').getBoundingClientRect().height);
+  for (let n = 1; n <= 5; n++) {
+    const solved = await page.evaluate((expectedHeight) => {
+      const inputs = [...document.querySelectorAll('input[type="range"]')];
+      const free = inputs.filter((i) => !i.disabled);
+      if (free.length !== 1) return { error: `動かせるつまみが ${free.length} 個` };
+      const input = free[0];
+      const steps = Math.round((Number(input.max) - Number(input.min)) / Number(input.step));
+      for (let i = 0; i <= steps; i++) {
+        input.value = String(Number(input.min) + i * Number(input.step));
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        const height = document.querySelector('.stage').getBoundingClientRect().height;
+        if (Math.abs(height - expectedHeight) >= 1) return { error: `ミッション中に図の欄の高さが変わる（${expectedHeight}→${height}）` };
+        if (/NaN|Infinity/.test(document.querySelector('.mission-panel').textContent)) return { error: 'ミッションの欄に NaN' };
+        if (document.querySelector('.mission-panel').classList.contains('solved')) {
+          return { ok: true, locked: inputs.every((x) => x.disabled) };
+        }
+      }
+      return { error: '目盛りを全部動かしても当たらない' };
+    }, stageHeight);
+    expect(solved.ok, `${label} ${id}: ミッション${n}：${solved.error}`);
+    if (!solved.ok) return;
+    expect(solved.locked, `${label} ${id}: ミッション${n}で当たった後もつまみが動く`);
+    await page.locator('.mission-next').click();
+  }
+  const cleared = await page.evaluate(() => ({
+    cleared: document.querySelector('.mission-panel').classList.contains('cleared'),
+    again: !document.querySelector('.mission-again').hidden,
+    record: JSON.parse(localStorage.getItem('denken-zukan:missions') || '{}'),
+  }));
+  expect(cleared.cleared && cleared.again, `${label} ${id}: 5問の後にクリアともう1セットが出ない`);
+  expect(cleared.record[id]?.clears >= 1, `${label} ${id}: クリアが記録されない`);
+  await page.locator('.mission-quit').click();
+  const closed = await page.evaluate(() => ({
+    hidden: document.querySelector('.mission-panel').hidden,
+    enabled: [...document.querySelectorAll('input[type="range"]')].every((i) => !i.disabled),
+    readouts: getComputedStyle(document.querySelector('.readouts')).display !== 'none',
+  }));
+  expect(closed.hidden && closed.enabled && closed.readouts, `${label} ${id}: 閉じても元に戻らない`);
 }
 
 // 視差効果を減らす設定では、止まった状態で開く

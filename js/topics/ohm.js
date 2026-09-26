@@ -80,6 +80,31 @@
       { name: '抵抗', symbol: 'R', value: Notation.number(r.R, 0), unit: 'Ω', cls: 'q-active' },
       { name: '流れやすさ', symbol: 'G', value: Notation.number(r.G, 3), unit: 'S' },
     ],
+    // ミッション：つまみを動かして目標に合わせる（答えがつまみの目盛りに乗る数だけを出す）
+    missions: [
+      {
+        free: 'R',
+        cases: [[12, 1], [12, 2], [12, 3], [12, 4], [12, 6], [6, 1], [6, 2], [6, 3], [18, 2], [18, 3], [18, 6], [24, 2], [24, 3], [24, 4], [24, 6], [24, 8]].map(([V, I]) => ({ V, I })),
+        setup: ({ V }) => ({ V }),
+        answer: ({ V, I }) => V / I,
+        text: ({ I }) => `電流をちょうど ${I} A にしよう`,
+        how: ({ V }) => `電圧は ${V} V のまま。抵抗 <var>R</var> を動かす`,
+        now: (r) => `いま ${Notation.number(r.I, 2)} A`,
+        hit: (r, { I }) => Math.abs(r.I - I) < 1e-9,
+        reason: ({ V, I }) => `<var>I</var> = <var>V</var> ÷ <var>R</var> = ${V} ÷ ${V / I} = ${I} A。電流を増やすには抵抗を小さくする。`,
+      },
+      {
+        free: 'V',
+        cases: [[2, 3], [2, 5], [3, 2], [3, 4], [3, 7], [4, 2], [4, 5], [6, 2], [6, 4], [8, 3]].map(([R, I]) => ({ R, I })),
+        setup: ({ R }) => ({ R }),
+        answer: ({ R, I }) => R * I,
+        text: ({ I }) => `電流をちょうど ${I} A にしよう`,
+        how: ({ R }) => `抵抗は ${R} Ω のまま。電池の電圧 <var>V</var> を動かす`,
+        now: (r) => `いま ${Notation.number(r.I, 2)} A`,
+        hit: (r, { I }) => Math.abs(r.I - I) < 1e-9,
+        reason: ({ R, I }) => `<var>V</var> = <var>RI</var> = ${R} × ${I} = ${R * I} V にすると、<var>I</var> = ${I} A になる。`,
+      },
+    ],
     terms: [
       ['電圧 <var>V</var>', '電気を押し流す力。水にたとえると水位の差（高い所から低い所へ流れる）。単位は V（ボルト）。'],
       ['電流 <var>I</var>', '電気の流れの量。水にたとえると、1秒間に流れる水の量。単位は A（アンペア）。電池の＋から出て −へ戻る向きを電流の向きとする。'],
