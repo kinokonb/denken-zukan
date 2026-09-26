@@ -477,6 +477,9 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .ac-wave { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; }
 .black-box { fill: var(--paper); stroke: var(--ink); stroke-width: 1.75; }
 .black-box.closed { fill: var(--ink-3); fill-opacity: 0.18; }
+.building { fill: none; stroke: var(--ink-2); stroke-width: 1.5; stroke-linejoin: round; }
+.motor { fill: var(--paper); stroke: var(--ink); stroke-width: 1.75; }
+.motor-letter { fill: var(--ink); font-size: 13px; font-weight: 700; }
 .breaker-box { fill: none; stroke: var(--ink-2); stroke-width: 1.25; }
 .flow circle { fill: currentColor; }
 .bar-part { stroke: var(--paper); stroke-width: 1.5; }

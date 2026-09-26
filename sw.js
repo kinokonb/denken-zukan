@@ -44,6 +44,7 @@ const ASSETS = [
   'js/plays/series-parallel.js',
   'js/plays/electric-power.js',
   'js/plays/rlc.js',
+  'js/plays/voltage-drop.js',
   'js/app.js',
 ];
 

@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 // レッスンのファイルは画面用（読み込み時に Notation、計算で DcCircuit などを使う）なので、先に用意する
 globalThis.Notation = require('../js/notation.js');
 globalThis.DcCircuit = require('../js/calc/dc-circuit.js');
+globalThis.VoltageDrop = require('../js/calc/voltage-drop.js');
 globalThis.PlayKit = require('../js/plays/kit.js');
 const Job = require('../js/job.js');
 const lessons = [
@@ -13,6 +14,7 @@ const lessons = [
   ['直列と並列', require('../js/plays/series-parallel.js')],
   ['電力と電力量', require('../js/plays/electric-power.js')],
   ['RLC直列回路', require('../js/plays/rlc.js')],
+  ['送電線の電圧降下', require('../js/plays/voltage-drop.js')],
 ];
 
 // 再現できる乱数（mulberry32）

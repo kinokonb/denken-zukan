@@ -13,13 +13,23 @@
     return { ok: false, reason: `本物は ${num(truth)} ${unit}（予想 ${num(input)} ${unit}）。${why}` };
   }
 
-  // 針の計器（look.meter を指す）と、その下の読み（結果が出るまで「？ 単位」）。ghost は予想の針、mark は目盛りの印
-  function meter(g, x, y, look, { max, letter, cls, mark = null, ghost = null, readingY = y + 40 }) {
-    Svg.gauge(g, x, y, { value: look.meter, max, letter, cls, mark, ghost });
+  // 目盛り（step おき）に乗らない値（√3 をかけた値など）を予想する問い。当たりは本物にいちばん近い目盛りのときだけ
+  const nearestMark = (truth, step) => Number((Math.round(truth / step) * step).toFixed(6));
+
+  function predictedNearest(input, truth, step, unit, why) {
+    const mark = nearestMark(truth, step);
+    if (near(input, mark)) return { ok: true, reason: `当たり！ ${why}。いちばん近い目盛りは ${num(mark)} ${unit}` };
+    return { ok: false, reason: `本物は約 ${Math.round(truth)} ${unit}（予想 ${num(input)} ${unit}）。${why}` };
+  }
+
+  // 針の計器（look.meter を指す）と、その下の読み（結果が出るまで「？ 単位」）。ghost は予想の針、mark は目盛りの印、
+  // min は拡大目盛りの計器の左端
+  function meter(g, x, y, look, { min = 0, max, letter, cls, mark = null, ghost = null, readingY = y + 40 }) {
+    Svg.gauge(g, x, y, { value: look.meter, min, max, letter, cls, mark, ghost });
     Svg.note(g, x, readingY, look.reading ?? `？ ${letter}`, { cls: look.reading ? `value ${cls}` : 'faint', anchor: 'middle' });
   }
 
-  const PlayKit = { num, near, predicted, meter };
+  const PlayKit = { num, near, predicted, nearestMark, predictedNearest, meter };
   if (typeof module !== 'undefined' && module.exports) module.exports = PlayKit;
   else global.PlayKit = PlayKit;
 })(this);

@@ -306,7 +306,7 @@
         input.style.setProperty('--fill', `${((job.input - min) / (max - min)) * 100}%`);
         $('.job-control output').textContent = `${job.input} ${unit}`;
       } else if (template.kind === 'count') {
-        $('.job-control output').textContent = `${job.input}個`;
+        $('.job-control output').textContent = `${job.input}${template.count.unit ?? '個'}`;
         $('.job-control [data-step="-1"]').disabled = job.input <= template.count.min;
         $('.job-control [data-step="1"]').disabled = job.input >= template.count.max;
       }
@@ -325,11 +325,12 @@
             <output></output>
           </label>`;
       } else if (template.kind === 'count') {
+        const unit = template.count.unit ?? '個';
         control.innerHTML = `
           <div class="job-stepper">
-            <button type="button" data-step="-1" aria-label="1個へらす">−</button>
+            <button type="button" data-step="-1" aria-label="1${unit}へらす">−</button>
             <output></output>
-            <button type="button" data-step="1" aria-label="1個ふやす">＋</button>
+            <button type="button" data-step="1" aria-label="1${unit}ふやす">＋</button>
           </div>`;
       } else {
         control.innerHTML = `<p class="job-hint">${template.probe.hint}</p>`;

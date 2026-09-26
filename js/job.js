@@ -3,7 +3,7 @@
 // ここは出題の組み立てと、決められる入力の一覧だけを持つ（DOMなし）。画面と演出は js/job-play.js。
 // レッスンごとの遊び（js/plays/<レッスンid>.js）の jobs は「型」の並び。型の kind で決め方が変わる：
 // - dial：つまみで値を決める（dial: { name, symbol, unit, min, max, step }）
-// - count：個数を決める（count: { min, max }）
+// - count：個数を決める（count: { min, max, unit（数え方。省くと「個」） }）
 // - probe：図の部品をタップしてテスターで測り、選んだ1つを交換する（probe: { parts, hint（案内の文）, measure(values, i)（針の値）, reading(値)（読みの文） }）
 // どの型も cases（数値の組）、request(values)（依頼の文）、answer(values)（正しい入力）、
 // run(values, input)（スイッチを入れた結果：ok・計器の針 meter・電球の明るさ lamps・壊れる所 burst・計器の読み reading・理由 reason）、draw(g, values, input, look)（現場の図）を持つ。

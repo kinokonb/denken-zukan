@@ -52,6 +52,24 @@ test('電圧降下：力率1でXがなければ近似式と正確な値は一致
   near(r.drop, Math.sqrt(3) * 200 * 1.5, 1e-9, '降下');
 });
 
+test('電圧降下：単相2線式は往復で 2IR。10 A・1線 0.25 Ω なら 5 V、105 V の送り出しで家は 100 V', () => {
+  near(VoltageDrop.singlePhaseDrop({ I: 10, R: 0.25 }), 5, 1e-9, '降下');
+  // 遅れ力率 0.8（sin 0.6）のモーター：2 × 10 × (0.25 × 0.8 + 0.5 × 0.6) = 10 V
+  near(VoltageDrop.singlePhaseDrop({ I: 10, R: 0.25, X: 0.5, cos: 0.8 }), 10, 1e-9, '力率つきの降下');
+});
+
+test('電圧降下：三相3線式は √3 倍。100 A・R=1Ω・X=2Ω・力率0.8 で約346V、降下率は受電端が分母', () => {
+  near(VoltageDrop.threePhaseDrop({ I: 100, R: 1, X: 2, cos: 0.8 }), 346.4, 0.1, '降下');
+  near(VoltageDrop.dropRate({ Vs: 6930, Vr: 6600 }), 5, 1e-9, '降下率');
+});
+
+test('電圧降下：家が並ぶ配電線。区間の電流は先の家の合計で、家の電圧は手前から順に下がる', () => {
+  // 4軒とも 10 A、区間の電線は行き・帰りとも 0.05 Ω：区間の電流 40・30・20・10 A、降下 4・3・2・1 V
+  const r = VoltageDrop.feeder({ V0: 105, loads: [10, 10, 10, 10], top: [0.05, 0.05, 0.05, 0.05], bottom: [0.05, 0.05, 0.05, 0.05] });
+  assert.deepEqual(r.spans, [40, 30, 20, 10]);
+  r.voltages.forEach((V, k) => near(V, [101, 98, 96, 95][k], 1e-9, `家${k + 1}`));
+});
+
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };
 
 test('誘導電動機：4極50Hzの同期速度は1500 min⁻¹、s=0.04 で 1440 min⁻¹', () => {

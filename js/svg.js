@@ -273,13 +273,14 @@
     return g;
   }
 
-  // 針の計器（電流計 'A'、電圧計 'V'）。value を 0〜max の目盛りで指す（振り切れは少しだけ越えて止まる）。
+  // 針の計器（電流計 'A'、電圧計 'V'）。value を min〜max の目盛りで指す（振り切れは少しだけ越えて止まる）。
+  // min は拡大目盛り（80〜120 V など、小さな差を見る電圧計）の時だけ 0 以外にする。
   // mark は目盛りに付ける印（ヒューズの定格など）で、計器と同じ量の色で描く。ghost は予想の針（点線）
-  function gauge(parent, x, y, { value = 0, max, letter, cls = '', mark = null, ghost = null } = {}) {
+  function gauge(parent, x, y, { value = 0, min = 0, max, letter, cls = '', mark = null, ghost = null } = {}) {
     const g = el(parent, 'g', { class: `gauge ${cls}` });
     const from = Math.PI * 1.15; // 左下
     const to = -Math.PI * 0.15; // 右下
-    const angleOf = (v) => from + (to - from) * Math.max(-0.04, Math.min(1.06, v / max));
+    const angleOf = (v) => from + (to - from) * Math.max(-0.04, Math.min(1.06, (v - min) / (max - min)));
     const point = (angle, radius) => [x + radius * Math.cos(angle), y - radius * Math.sin(angle)];
     el(g, 'circle', { cx: x, cy: y, r: 24, class: 'gauge-face' });
     angleArc(g, x, y, 18, from, to, { cls: 'gauge-scale' });

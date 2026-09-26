@@ -6,12 +6,10 @@ const assert = require('node:assert/strict');
 globalThis.Notation = require('../js/notation.js');
 globalThis.DcCircuit = require('../js/calc/dc-circuit.js');
 globalThis.RlcCircuit = require('../js/calc/rlc.js');
-globalThis.VoltageDrop = require('../js/calc/voltage-drop.js');
 globalThis.InductionMotor = require('../js/calc/induction-motor.js');
 globalThis.PowerFactor = require('../js/calc/power-factor.js');
 const Mission = require('../js/mission.js');
 const lessons = [
-  require('../js/topics/voltage-drop.js').TopicVoltageDrop,
   require('../js/topics/induction-motor.js').TopicInductionMotor,
   require('../js/topics/power-factor.js').TopicPowerFactor,
 ];
