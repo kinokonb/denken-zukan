@@ -6,7 +6,7 @@
   const MOTOR = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };
   const INITIAL_R2 = 0.3;
   const WIDTH = 360;
-  const HEIGHT = 280;
+  const HEIGHT = 300;
 
   function compute(p) {
     return {
@@ -70,12 +70,13 @@
     Svg.guide(g, px, py, px, bottom, 'q-mech');
     Svg.el(g, 'circle', { cx: px, cy: py, r: 6, class: 'dot q-mech' });
 
+    drawRotorFrame(svg);
     drawPowerSplit(svg, p, r);
   }
 
   // 二次入力 P2 = 銅損 sP2 + 出力 (1−s)P2
   function drawPowerSplit(svg, p, r) {
-    const bar = { x: 48, y: 236, w: 292, h: 22 };
+    const bar = { x: 150, y: 252, w: 190, h: 22 };
     const g = Svg.el(svg, 'g');
     const outputWidth = bar.w * (1 - p.s);
     Svg.note(g, bar.x, bar.y - 12, `二次入力 P₂ = ${Notation.number(r.P2 / 1000, 2)} kW の行き先`, { cls: 'faint' });
@@ -83,10 +84,32 @@
     Svg.el(g, 'rect', { x: bar.x + outputWidth, y: bar.y, width: bar.w - outputWidth, height: bar.h, class: 'bar loss' });
     const outputText = `出力 ${Notation.number(r.Po / 1000, 2)} kW`;
     const lossText = `銅損 ${Notation.number(r.Pc2 / 1000, 2)} kW`;
-    if (outputWidth > 130) Svg.note(g, bar.x + 8, bar.y + bar.h / 2, outputText, { cls: 'on-bar' });
-    if (bar.w - outputWidth > 130) Svg.note(g, bar.x + bar.w - 8, bar.y + bar.h / 2, lossText, { cls: 'on-bar', anchor: 'end' });
-    if (outputWidth <= 130) Svg.note(g, bar.x + bar.w, bar.y + bar.h + 12, outputText, { cls: 'faint', anchor: 'end' });
-    if (bar.w - outputWidth <= 130) Svg.note(g, bar.x + bar.w, bar.y - 12, lossText, { cls: 'faint', anchor: 'end' });
+    const below = bar.y + bar.h + 13;
+    if (outputWidth > 100) Svg.note(g, bar.x + 8, bar.y + bar.h / 2, outputText, { cls: 'on-bar' });
+    else Svg.note(g, bar.x, below, outputText, { cls: 'faint' });
+    Svg.note(g, bar.x + bar.w, below, lossText, { cls: 'faint', anchor: 'end' });
+  }
+
+  const ROTOR = { cx: 82, cy: 262, stator: 36, rotor: 24 };
+  const FIELD_TURN_SECONDS = 4; // 回転磁界が表示で1回転する時間（実際は同期速度で回る）
+
+  function drawRotorFrame(svg) {
+    const g = Svg.el(svg, 'g');
+    Svg.el(g, 'circle', { cx: ROTOR.cx, cy: ROTOR.cy, r: ROTOR.stator, class: 'stator' });
+    Svg.note(g, 12, 218, '回転磁界（墨）と回転子（橙）をゆっくり表示', { cls: 'faint' });
+  }
+
+  // 回転磁界は同期速度 Ns、回転子は N = Ns(1 − s) で回る。すべりの分だけ回転子が遅れていく
+  function drawRotorMotion(g, p, r, time) {
+    const field = (2 * Math.PI * time) / FIELD_TURN_SECONDS;
+    const rotor = field * (1 - p.s);
+    const at = (length, angle) => [ROTOR.cx + length * Math.cos(angle), ROTOR.cy - length * Math.sin(angle)];
+    Svg.el(g, 'circle', { cx: ROTOR.cx, cy: ROTOR.cy, r: ROTOR.rotor, class: 'rotor q-mech' });
+    const [ax, ay] = at(ROTOR.rotor, rotor);
+    const [bx, by] = at(ROTOR.rotor, rotor + Math.PI);
+    Svg.el(g, 'line', { x1: bx, y1: by, x2: ax, y2: ay, class: 'rotor-bar q-mech' });
+    Svg.el(g, 'circle', { cx: ax, cy: ay, r: 4, class: 'dot q-mech' });
+    Svg.arrow(g, ROTOR.cx, ROTOR.cy, ...at(ROTOR.stator + 6, field), { cls: 'ink', width: 2 });
   }
 
   global.TopicInductionMotor = {
@@ -104,8 +127,9 @@
     ],
     compute,
     draw,
+    motion: { draw: drawRotorMotion },
     caption(p, r) {
-      return `二次入力のうち ${Notation.number(p.s * 100, 1)}% が二次銅損、${Notation.number((1 - p.s) * 100, 1)}% が機械出力になる（${Notation.html('P_2')} : ${Notation.html('P_{c2}')} : ${Notation.html('P_o')} = 1 : ${Notation.html('s')} : 1 − ${Notation.html('s')}）。`;
+      return `二次入力の ${Notation.number(p.s * 100, 1)}% が銅損、${Notation.number((1 - p.s) * 100, 1)}% が出力（1 : ${Notation.html('s')} : 1 − ${Notation.html('s')}）。回転子は磁界より遅れて回る。`;
     },
     readouts: (p, r) => [
       { name: '回転速度', symbol: 'N', value: Notation.number(r.N, 0), unit: 'min⁻¹' },

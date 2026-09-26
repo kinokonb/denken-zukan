@@ -1,10 +1,10 @@
-// 理論：RLC直列回路のフェーザ図と共振曲線
+// 理論：RLC直列回路のフェーザ図（回して波形も見せる）と共振曲線
 (function (global) {
   'use strict';
 
   const SOURCE_VOLTAGE = 100; // V
   const WIDTH = 360;
-  const HEIGHT = 340;
+  const HEIGHT = 356;
 
   function compute(p) {
     return RlcCircuit.analyze({ V: SOURCE_VOLTAGE, R: p.R, L: p.L / 1000, C: p.C * 1e-6, f: p.f });
@@ -12,65 +12,98 @@
 
   function draw(svg, p, r) {
     Svg.paper(svg, WIDTH, HEIGHT);
-    drawPhasor(svg, r);
+    drawPhasorFrame(svg, r);
     drawResonanceCurve(svg, p, r);
   }
 
-  // 電流 I を横向きの基準にしたフェーザ図
-  function drawPhasor(svg, r) {
-    const V = SOURCE_VOLTAGE;
-    const VX = r.VL - r.VC;
-    const bounds = {
-      minX: 0,
-      maxX: Math.max(r.VR, V),
-      minY: Math.min(-r.VC, -V),
-      maxY: Math.max(r.VL, V),
+  const TURN_SECONDS = 4; // 表示で1回転する時間（実際は f [Hz] で回る）
+  const WAVE_PERIODS = 1.5; // 右の波形に見せる周期の数
+
+  // フェーザ図と右の波形の置き場所。矢印は回るので、いちばん長い矢印が一周しても収まる縮尺にする
+  function phasorLayout(r) {
+    const longest = Math.max(SOURCE_VOLTAGE, r.VL, r.VC);
+    const radius = 84; // 電流の矢印（いちばん外側）の長さ
+    return {
+      ox: 98,
+      oy: 118,
+      scale: radius / (1.25 * longest), // 電圧 1 V あたりの長さ
+      currentLength: radius,
+      waveLeft: 200,
+      waveRight: 348,
     };
-    const f = Svg.frame(bounds, { x: 54, y: 30, w: 250, h: 180 });
-    const ox = f.x(0);
-    const oy = f.y(0);
+  }
+
+  function drawPhasorFrame(svg, r) {
+    const { ox, oy, scale, waveLeft, waveRight } = phasorLayout(r);
     const g = Svg.el(svg, 'g');
-
-    Svg.guide(g, ox - 14, oy, WIDTH - 14, oy);
+    Svg.guide(g, ox - 92, oy, waveRight, oy);
+    Svg.guide(g, waveLeft, oy - 96, waveLeft, oy + 96);
     // 電源電圧の大きさは一定なので、V の先は半径 |V| の円の上を動く
-    Svg.angleArc(g, ox, oy, V * f.scale, -Math.PI / 2, Math.PI / 2, { cls: 'arc-guide' });
-    Svg.note(g, ox + 4, f.y(V) - 10, `|V| = ${V} V の円`, { cls: 'faint' });
+    Svg.el(g, 'circle', { cx: ox, cy: oy, r: SOURCE_VOLTAGE * scale, class: 'arc arc-guide' });
+    Svg.note(g, 8, 14, 'ゆっくり回して表示。矢印の縦の成分＝その瞬間の値', { cls: 'faint' });
+    Svg.note(g, ox, oy + SOURCE_VOLTAGE * scale + 10, `|V| = ${SOURCE_VOLTAGE} V`, { cls: 'faint', anchor: 'middle' });
+    Svg.note(g, waveRight, oy + 100, '← 新しい　古い →', { cls: 'faint', anchor: 'end' });
+  }
 
-    Svg.arrow(g, ox, oy, ox, f.y(r.VL), { cls: 'q-reactive', width: 1.5 });
-    Svg.label(g, ox - 8, f.y(r.VL) + 4, 'V_L', { cls: 'q-reactive', anchor: 'end' });
-    Svg.arrow(g, ox, oy, ox, f.y(-r.VC), { cls: 'q-reactive', width: 1.5, dashed: true });
-    Svg.label(g, ox - 8, f.y(-r.VC) - 4, 'V_C', { cls: 'q-reactive', anchor: 'end' });
+  // 回るフェーザ（電流 I の向き = 回転角 α）と、その縦の成分が描く波形
+  function drawRotatingPhasor(g, p, r, time) {
+    const { ox, oy, scale, currentLength, waveLeft, waveRight } = phasorLayout(r);
+    const alpha = (2 * Math.PI * time) / TURN_SECONDS;
+    const at = (length, angle) => [ox + length * Math.cos(angle), oy - length * Math.sin(angle)];
+    const labelAt = (length, angle, gap = 12) => at(length + gap, angle);
+    const up = alpha + Math.PI / 2;
+    const down = alpha - Math.PI / 2;
+    const vAngle = alpha + r.phi;
+    const VX = r.VL - r.VC;
 
-    Svg.arrow(g, ox, oy, f.x(r.VR), oy, { cls: 'q-active', width: 2.5 });
-    Svg.label(g, (ox + f.x(r.VR)) / 2, oy + (VX >= 0 ? 16 : -14), 'V_R', { cls: 'q-active' });
+    const iTip = at(currentLength, alpha);
+    const vTip = at(SOURCE_VOLTAGE * scale, vAngle);
+    const vrTip = at(r.VR * scale, alpha);
+    const vxTip = [vrTip[0] + VX * scale * Math.cos(up), vrTip[1] - VX * scale * Math.sin(up)];
 
-    Svg.arrow(g, f.x(r.VR), oy, f.x(r.VR), f.y(VX), { cls: 'q-reactive', width: 2.5 });
-    if (Math.abs(VX) * f.scale > 18) {
-      Svg.label(g, f.x(r.VR) + 8, (oy + f.y(VX)) / 2, 'V_L − V_C', { cls: 'q-reactive', anchor: 'start', size: 13 });
+    // 波形：左端が今の値（矢印の先の高さ）、右へ行くほど前の時刻
+    const k = (2 * Math.PI * WAVE_PERIODS) / (waveRight - waveLeft);
+    const wave = (amplitude, phase) => {
+      const points = [];
+      for (let x = waveLeft; x <= waveRight; x += 3) points.push([x, oy - amplitude * Math.sin(phase - k * (x - waveLeft))]);
+      return points;
+    };
+    Svg.polyline(g, wave(currentLength, alpha), 'q-current');
+    Svg.polyline(g, wave(SOURCE_VOLTAGE * scale, vAngle), 'q-voltage thick');
+    Svg.guide(g, iTip[0], iTip[1], waveLeft, iTip[1], 'q-current');
+    Svg.guide(g, vTip[0], vTip[1], waveLeft, vTip[1], 'q-voltage');
+    Svg.el(g, 'circle', { cx: waveLeft, cy: iTip[1], r: 4, class: 'dot q-current' });
+    Svg.el(g, 'circle', { cx: waveLeft, cy: vTip[1], r: 4.5, class: 'dot q-voltage' });
+    Svg.label(g, waveLeft + 8, iTip[1] - 10, 'i', { cls: 'q-current', anchor: 'start', size: 14 });
+    Svg.label(g, waveLeft + 8, vTip[1] - 10, 'v', { cls: 'q-voltage', anchor: 'start', size: 14 });
+
+    // 電流は基準の向き。V_R と同じ向きなので、V_R より長く描いて下から見えるようにする
+    Svg.arrow(g, ox, oy, iTip[0], iTip[1], { cls: 'q-current', width: 2 });
+    Svg.label(g, ...labelAt(currentLength, alpha, 10), 'I', { cls: 'q-current', size: 16 });
+
+    Svg.arrow(g, ox, oy, ...at(r.VL * scale, up), { cls: 'q-reactive', width: 1.5 });
+    Svg.label(g, ...labelAt(r.VL * scale, up), 'V_L', { cls: 'q-reactive' });
+    Svg.arrow(g, ox, oy, ...at(r.VC * scale, down), { cls: 'q-reactive', width: 1.5, dashed: true });
+    Svg.label(g, ...labelAt(r.VC * scale, down), 'V_C', { cls: 'q-reactive' });
+
+    Svg.arrow(g, ox, oy, vrTip[0], vrTip[1], { cls: 'q-active', width: 3 });
+    const vrMid = at((r.VR * scale) / 2, alpha);
+    Svg.label(g, vrMid[0] + 13 * Math.cos(down), vrMid[1] - 13 * Math.sin(down), 'V_R', { cls: 'q-active' });
+
+    Svg.arrow(g, vrTip[0], vrTip[1], vxTip[0], vxTip[1], { cls: 'q-reactive', width: 2.5 });
+    Svg.arrow(g, ox, oy, vTip[0], vTip[1], { cls: 'q-voltage', width: 3 });
+    Svg.label(g, ...labelAt(SOURCE_VOLTAGE * scale, vAngle), 'V', { cls: 'q-voltage', size: 17 });
+
+    Svg.angleArc(g, ox, oy, 24, alpha, vAngle, { cls: 'arc-angle' });
+    if (Math.abs(r.phi) > 0.15) {
+      Svg.label(g, ...at(34, alpha + r.phi / 2), 'φ', { size: 14 });
     }
-
-    Svg.arrow(g, ox, oy, f.x(r.VR), f.y(VX), { cls: 'q-voltage', width: 3 });
-    const tipX = f.x(r.VR);
-    const tipY = f.y(VX);
-    Svg.label(g, tipX + (Math.abs(VX) * f.scale > 18 ? -10 : 12), tipY + (VX >= 0 ? -12 : 12), 'V', { cls: 'q-voltage', size: 17 });
-
-    const arcRadius = 30;
-    Svg.angleArc(g, ox, oy, arcRadius, 0, r.phi, { cls: 'arc-angle' });
-    if (Math.abs(r.phi) > 0.12) {
-      const mid = r.phi / 2;
-      Svg.label(g, ox + (arcRadius + 10) * Math.cos(mid), oy - (arcRadius + 10) * Math.sin(mid), 'φ', { size: 14 });
-    }
-
-    // 電流は基準の向きを示す（長さは一定）
-    const iy = oy + (VX >= 0 ? 30 : -30);
-    Svg.arrow(g, ox, iy, ox + 56, iy, { cls: 'q-current', width: 2.5 });
-    Svg.label(g, ox + 68, iy, 'I', { cls: 'q-current', anchor: 'start', size: 16 });
   }
 
   // 周波数を変えた時の電流（共振曲線）。いまの f に印
   function drawResonanceCurve(svg, p, r) {
     const range = PARAMS.find((param) => param.key === 'f');
-    const area = { x: 40, y: 250, w: 300, h: 62 };
+    const area = { x: 40, y: 268, w: 300, h: 60 };
     const g = Svg.el(svg, 'g');
     const toX = (freq) => area.x + ((freq - range.min) / (range.max - range.min)) * area.w;
     const peak = SOURCE_VOLTAGE / p.R;
@@ -125,6 +158,7 @@
     ],
     compute,
     draw,
+    motion: { draw: drawRotatingPhasor },
     caption(p, r) {
       const degrees = Notation.number(Math.abs((r.phi * 180) / Math.PI), 1);
       if (Math.abs(r.X) < 0.5) return `ほぼ共振：${Notation.html('X_L')} ≒ ${Notation.html('X_C')} なので ${Notation.html('Z')} ≒ ${Notation.html('R')}、電流がいちばん大きい。`;

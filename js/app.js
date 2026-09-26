@@ -1,5 +1,6 @@
-// 画面：目次とテーマのページ、つまみ → 計算 → 図の更新、オフライン保存の状態表示。
+// 画面：目次とテーマのページ、つまみ → 計算 → 図の更新、動く図の再生、オフライン保存の状態表示。
 // 各テーマの中身（数値・図・文章）は js/topics/*.js、計算は js/calc/*.js が持つ。
+// 動くこと自体に意味がある図（交流の時間変化・回転）は、テーマの motion が動く部分だけを描き、開いたら自動で動く。
 (function () {
   'use strict';
 
@@ -25,13 +26,20 @@
     return Object.fromEntries(topic.params.map((param) => [param.key, param.value]));
   }
 
-  function drawFigure(svg, topic, params) {
+  // 止まっている部分を描き、動く部分（motion）はいちばん上の層に time 秒の姿で描く
+  function drawFigure(svg, topic, params, time) {
     const [width, height] = topic.viewBox;
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     Svg.clear(svg);
     const result = topic.compute(params);
     topic.draw(svg, params, result);
-    return result;
+    const motionLayer = topic.motion ? Svg.el(svg, 'g', { class: 'motion' }) : null;
+    if (motionLayer) topic.motion.draw(motionLayer, params, result, time);
+    return { result, motionLayer };
+  }
+
+  function prefersReducedMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   // ---- 目次 ----
@@ -59,7 +67,7 @@
       </footer>`;
     for (const svg of view.querySelectorAll('svg.thumb')) {
       const { topic } = ALL_TOPICS.find((entry) => entry.topic.id === svg.dataset.topic);
-      drawFigure(svg, topic, initialParams(topic));
+      drawFigure(svg, topic, initialParams(topic), 0);
     }
     view.querySelector('.install-hint').hidden = !shouldSuggestInstall();
     showOfflineState();
@@ -115,7 +123,10 @@
         <div class="stage">
           <figure class="figure-card">
             <svg class="figure" role="img" aria-label="${topic.title}の図"></svg>
-            <figcaption class="caption" aria-live="polite"></figcaption>
+            <figcaption class="caption">
+              <span class="caption-text" aria-live="polite"></span>
+              ${topic.motion ? '<button type="button" class="motion-toggle"></button>' : ''}
+            </figcaption>
           </figure>
           <dl class="readouts"></dl>
         </div>
@@ -134,12 +145,15 @@
       </nav>`;
 
     const svg = view.querySelector('svg.figure');
-    const caption = view.querySelector('.caption');
+    const caption = view.querySelector('.caption-text');
     const readouts = view.querySelector('.readouts');
     const inputs = [...view.querySelectorAll('input[type="range"]')];
+    let figure = null;
+    const motion = createMotion(topic, svg, () => ({ params, figure }));
 
     function update() {
-      const result = drawFigure(svg, topic, params);
+      figure = drawFigure(svg, topic, params, motion.time());
+      const { result } = figure;
       caption.innerHTML = topic.caption(params, result);
       readouts.innerHTML = topic.readouts(params, result).map(readoutHtml).join('');
       for (const input of inputs) {
@@ -173,6 +187,58 @@
     });
 
     update();
+    motion.start();
+  }
+
+  // 動く図の再生。time は再生している間だけ進む（止めると、その瞬間の姿で止まる）。
+  // 視差効果を減らす設定の時は止めた状態で開く。ページを離れたら（図が画面から外れたら）止まる。
+  function createMotion(topic, svg, current) {
+    const button = view.querySelector('.motion-toggle');
+    let time = 0;
+    let playing = false;
+    let frameId = null;
+    let lastFrame = null;
+
+    function showButton() {
+      if (!button) return;
+      button.textContent = playing ? '⏸ 止める' : '▶ 動かす';
+      button.setAttribute('aria-pressed', String(playing));
+    }
+
+    function frame(now) {
+      if (!svg.isConnected) return;
+      // 画面を裏にしていた間の空白で一気に進まないよう、1コマは0.1秒まで
+      if (lastFrame !== null) time += Math.min((now - lastFrame) / 1000, 0.1);
+      lastFrame = now;
+      const { params, figure } = current();
+      Svg.clear(figure.motionLayer);
+      topic.motion.draw(figure.motionLayer, params, figure.result, time);
+      frameId = requestAnimationFrame(frame);
+    }
+
+    function play() {
+      playing = true;
+      lastFrame = null;
+      frameId = requestAnimationFrame(frame);
+      showButton();
+    }
+
+    function pause() {
+      playing = false;
+      cancelAnimationFrame(frameId);
+      showButton();
+    }
+
+    if (button) button.addEventListener('click', () => (playing ? pause() : play()));
+
+    return {
+      time: () => time,
+      start() {
+        if (!topic.motion) return;
+        if (prefersReducedMotion()) showButton();
+        else play();
+      },
+    };
   }
 
   function controlHtml(param) {

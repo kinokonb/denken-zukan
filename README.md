@@ -8,12 +8,12 @@
 - 更新：通信のある所で開くと裏で新しい版を取り込み、次に開いた時から新しい版になる。
 - Mac：`open -a "Microsoft Edge" https://kinokonb.github.io/denken-zukan/`。repoの `index.html` を直接開いても動く（その開き方ではオフライン保存はしない）。
 
-## 今あるテーマ（v0.1）
+## 今あるテーマ（v0.1.1）
 | 科目 | テーマ | 動かせるもの |
 |---|---|---|
-| 理論 | RLC直列回路とフェーザ図 | R・L・C・周波数、「共振させる」 |
+| 理論 | RLC直列回路とフェーザ図 | R・L・C・周波数、「共振させる」。矢印が回り、電圧・電流の波形が流れる |
 | 電力 | 送電線の電圧降下 | 負荷電流・力率・1線のR・X |
-| 機械 | 誘導電動機のトルクとすべり | すべり・二次抵抗、「起動の瞬間」「最大トルクで起動」 |
+| 機械 | 誘導電動機のトルクとすべり | すべり・二次抵抗、「起動の瞬間」「最大トルクで起動」。回転磁界と回転子が回る |
 | 法規 | 力率改善とコンデンサ | 有効電力・改善前の力率・コンデンサ容量、「力率0.95にする」「力率1にする」 |
 
 ## 変更したい内容 → 担当
@@ -21,7 +21,7 @@
 |---|---|
 | テーマの文章・つまみ・図・計算結果の欄 | [js/topics/](js/topics/)（1テーマ1ファイル） |
 | 計算式 | [js/calc/](js/calc/)（DOMなしの関数。[tests/calc.test.js](tests/calc.test.js) で教科書の値と照合） |
-| 目次、テーマの画面の組み立て、つまみ → 計算 → 図の流れ | [js/app.js](js/app.js) |
+| 目次、テーマの画面の組み立て、つまみ → 計算 → 図の流れ、動く図の再生 | [js/app.js](js/app.js) |
 | 図の部品（方眼・矢印・量記号のラベル・角度の弧） | [js/svg.js](js/svg.js) |
 | 量記号（斜体・添字）と数値の書き方 | [js/notation.js](js/notation.js) |
 | 見た目・色（ライト／ダーク） | [style.css](style.css) |
@@ -33,9 +33,9 @@
 ### テーマの足し方
 0. 資料（過去問題集、[AGENTS.md](AGENTS.md) の「資料」）でそのテーマの過去問を探し（`swift tools/reference.swift find <科目> <語>`）、問われ方・記号・単位・典型値を合わせる。本文・図・問題は写さない。
 1. `js/calc/` に計算を置き、`tests/calc.test.js` に教科書の値で確かめるテストを足す。
-2. `js/topics/` にテーマを置く（`params`・`presets`・`compute`・`draw`・`caption`・`readouts`・`conditions`・`notesHtml`）。
+2. `js/topics/` にテーマを置く（`params`・`presets`・`compute`・`draw`・`caption`・`readouts`・`conditions`・`notesHtml`）。交流の時間変化や回転のように、動くこと自体に意味がある図だけ `motion: { draw(g, params, result, time) }` を足す（動く部分だけを描く。開いたら自動で動き、止める／動かすボタンが付く）。
 3. `index.html` に `<script>`、`js/app.js` の `SUBJECTS` に登録、`sw.js` の `ASSETS` に追加。
-4. `tools/sim/check.mjs` の `TOPICS` に追加。
+4. `tools/sim/check.mjs` の `TOPICS`（動くなら `MOVING` にも）に追加。
 
 ## 検証
 ```sh

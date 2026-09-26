@@ -170,6 +170,9 @@ a { color: inherit; }
 }
 .figure { display: block; width: 100%; height: auto; max-height: 46svh; margin: 0 auto; color: var(--ink); }
 .caption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   /* 文章の長さで図の高さが変わると、操作中のつまみが指の下から逃げるので2行分を確保する */
   min-height: calc(2 * 1.5em + 18px + 1px); /* 2行 + 上下の余白 + 上の線 */
   padding: 9px 12px;
@@ -177,6 +180,21 @@ a { color: inherit; }
   font-size: 14px;
   line-height: 1.5;
 }
+
+.caption-text { flex: 1; min-width: 0; }
+.motion-toggle {
+  flex: none;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+.motion-toggle:active { border-color: var(--ink); }
 
 .readouts {
   display: grid;
@@ -324,3 +342,6 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .bar { stroke: currentColor; stroke-width: 1; }
 .bar.q-mech { fill: color-mix(in srgb, var(--q-mech) 22%, var(--paper)); }
 .bar.loss { fill: var(--grid); stroke: var(--ink-3); }
+.stator { fill: none; stroke: var(--ink-3); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.rotor { fill: color-mix(in srgb, var(--q-mech) 16%, var(--paper)); stroke: currentColor; stroke-width: 1.5; }
+.rotor-bar { stroke: currentColor; stroke-width: 3; stroke-linecap: round; }

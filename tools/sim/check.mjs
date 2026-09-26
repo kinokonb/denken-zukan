@@ -17,6 +17,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const outDir = path.resolve(process.argv[2] || os.tmpdir());
 const publishedUrl = process.argv[3];
 const TOPICS = ['rlc', 'voltage-drop', 'induction-motor', 'power-factor'];
+const MOVING = ['rlc', 'induction-motor']; // 開いたら自動で動くテーマ
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
 const server = http.createServer((req, res) => {
@@ -71,6 +72,7 @@ async function run(colorScheme) {
     }));
     expect(layout.overflow <= 0, `${colorScheme} ${id}: 横にはみ出している（${layout.overflow}px）`);
     expect(!layout.nan, `${colorScheme} ${id}: 図に NaN がある`);
+    await checkMotion(page, id, colorScheme);
     shots.push(await page.screenshot());
 
     // 各つまみを両端へ。図が壊れず、上の図の高さが変わらない（操作中のつまみが動かない）
@@ -86,10 +88,15 @@ async function run(colorScheme) {
             nan: /NaN|Infinity/.test(document.querySelector('svg.figure').outerHTML + document.querySelector('.readouts').textContent),
             stage: document.querySelector('.stage').getBoundingClientRect().height,
             output: document.querySelector(`output[data-key="${input.dataset.key}"]`).textContent,
+            captionFits: (() => {
+              const caption = document.querySelector('.caption');
+              return caption.getBoundingClientRect().height <= parseFloat(getComputedStyle(caption).minHeight) + 0.5;
+            })(),
           };
         }, [i, end]);
         expect(!state.nan, `${colorScheme} ${id}: ${state.key}=${end} で NaN`);
         expect(Math.abs(state.stage - layout.stage) < 1, `${colorScheme} ${id}: ${state.key}=${end} で図の高さが ${layout.stage}→${state.stage}`);
+        expect(state.captionFits, `${colorScheme} ${id}: ${state.key}=${end} で説明が2行に収まらない`);
       }
     }
     // ボタンを順に押す（最後は初期値に戻す）
@@ -116,6 +123,43 @@ async function run(colorScheme) {
   return shots;
 }
 
+// 動くテーマは開いたら動き、「止める」で止まり、「動かす」でまた動く。動かないテーマにはボタンがない
+async function checkMotion(page, id, label) {
+  const snapshot = () => page.evaluate(() => document.querySelector('svg.figure .motion')?.innerHTML ?? null);
+  const toggle = page.locator('.motion-toggle');
+  if (!MOVING.includes(id)) {
+    expect((await toggle.count()) === 0, `${label} ${id}: 動かないテーマに再生ボタンがある`);
+    return;
+  }
+  const first = await snapshot();
+  await page.waitForTimeout(400);
+  expect(first !== null && (await snapshot()) !== first, `${label} ${id}: 開いても動いていない`);
+  await toggle.click();
+  expect((await toggle.textContent()).includes('動かす'), `${label} ${id}: 止めた後のボタンが「動かす」でない`);
+  const paused = await snapshot();
+  await page.waitForTimeout(400);
+  expect((await snapshot()) === paused, `${label} ${id}: 止めても動いている`);
+  await toggle.click();
+  await page.waitForTimeout(300);
+  expect((await snapshot()) !== paused, `${label} ${id}: もう一度押しても動かない`);
+}
+
+// 視差効果を減らす設定では、止まった状態で開く
+async function checkReducedMotion() {
+  const context = await browser.newContext({ viewport: { width: 430, height: 932 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  for (const id of MOVING) {
+    await page.goto(`${base}#/topic/${id}`);
+    await page.waitForSelector('svg.figure .motion > *');
+    const before = await page.evaluate(() => document.querySelector('svg.figure .motion').innerHTML);
+    await page.waitForTimeout(400);
+    const after = await page.evaluate(() => document.querySelector('svg.figure .motion').innerHTML);
+    expect(before === after, `視差効果を減らす設定なのに ${id} が動いている`);
+    expect((await page.locator('.motion-toggle').textContent()).includes('動かす'), `視差効果を減らす設定で ${id} のボタンが「動かす」でない`);
+  }
+  await context.close();
+}
+
 async function contactSheet(shots, file) {
   const page = await browser.newPage({ viewport: { width: 430 * shots.length * 0.5 + 8 * (shots.length + 1), height: 932 * 0.5 + 16 } });
   const imgs = shots.map((b) => `<img src="data:image/png;base64,${b.toString('base64')}">`).join('');
@@ -124,6 +168,7 @@ async function contactSheet(shots, file) {
   await page.close();
 }
 
+await checkReducedMotion();
 for (const scheme of ['light', 'dark']) {
   const shots = await run(scheme);
   await contactSheet(shots, path.join(outDir, `${scheme}.png`));
@@ -135,4 +180,4 @@ if (failures.length) {
   console.log(`NG ${failures.length}件\n- ${failures.join('\n- ')}`);
   process.exit(1);
 }
-console.log(`OK：目次と4テーマ（ライト・ダーク）、つまみの両端・ボタン・オフライン再読み込み。一覧: ${outDir}/light.png, dark.png`);
+console.log(`OK：目次と4テーマ（ライト・ダーク）、動く図の再生・停止、つまみの両端・ボタン・オフライン再読み込み。一覧: ${outDir}/light.png, dark.png`);
