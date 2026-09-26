@@ -694,3 +694,25 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
   font-size: 15.5px;
   font-weight: 700;
 }
+
+/* ---- 説明（3行でわかる・図の見かた・式と記号）と試験では ----
+   文は短く1つのことだけ。見出しごとに形をそろえ、方眼の紙に罫線で区切る */
+.points { margin: 0; padding-left: 1.5em; }
+.points li { padding: 4px 0; font-size: 16px; font-weight: 600; line-height: 1.6; border-bottom: 1px dashed var(--rule); }
+.look { margin: 0; padding: 0; list-style: none; }
+.look li { display: grid; grid-template-columns: 34px 1fr; align-items: start; gap: 6px; padding: 5px 0; font-size: 15px; line-height: 1.65; }
+.look-mark { width: 30px; height: 14px; margin-top: 5px; fill: currentColor; stroke: currentColor; stroke-width: 2; } /* 色は量の色の class（q-current など）が決める */
+.look-mark line { fill: none; }
+.look-mark .open { fill: none; }
+.look-mark .soft { stroke: none; fill-opacity: 0.35; }
+.formula-rows { margin: 0; padding: 0; list-style: none; }
+.formula-rows li { display: grid; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.formula-rows .formula { font-family: var(--font-math); font-size: 18px; line-height: 1.5; }
+.formula-rows .say { font-size: 15px; line-height: 1.6; }
+.formula-rows .when { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+.symbol-table { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 14px; line-height: 1.5; }
+.symbol-table th { padding: 4px 6px; font-size: 12.5px; font-weight: 600; text-align: left; color: var(--ink-2); border-bottom: 1.5px solid var(--ink); }
+.symbol-table td { padding: 5px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.symbol-table td:first-child { font-family: var(--font-math); font-size: 16px; white-space: nowrap; }
+.symbol-table td:last-child { white-space: nowrap; color: var(--ink-2); }
+.exam h3 { margin: 12px 0 4px; font-size: 14px; color: var(--ink-2); letter-spacing: 0.04em; }

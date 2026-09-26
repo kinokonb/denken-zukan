@@ -220,30 +220,50 @@
       { q: '周波数を2倍にすると、コイルのリアクタンス <var>X</var><sub>L</sub> は？', choices: ['半分になる', '変わらない', '2倍になる', '4倍になる'], answer: 2, why: '<var>X</var><sub>L</sub> = 2π<var>fL</var> は周波数に比例する。コンデンサの <var>X</var><sub>C</sub> = 1/(2π<var>fC</var>) は反対に半分になる。' },
       { q: 'RLC直列回路が共振している時、正しいのは？', choices: ['電流がいちばん小さい', 'インピーダンスが R と等しい', '電流が電圧より 90° 遅れる', 'コイルの電圧が 0 になる'], answer: 1, why: '共振では <var>X</var><sub>L</sub> = <var>X</var><sub>C</sub> で打ち消し合い <var>Z</var> = <var>R</var>。<var>Z</var> が最小なので電流は最大で、電流と電圧は同じ向き（同相）。' },
     ],
-    exam: `<p>交流回路の計算は、過去12回の理論で約40問（論点名から数えた目安）。ほぼ毎回出る。</p>
-      <ul>
-        <li>${Notation.html('X_L')} は周波数に比例、${Notation.html('X_C')} は周波数に反比例する。</li>
-        <li>共振（${Notation.html('X_L')} = ${Notation.html('X_C')}）では ${Notation.html('Z')} = ${Notation.html('R')} で最小、電流は最大、電流と電圧は同相。</li>
-        <li>電圧の大きさはそのまま足せない。${Notation.html('V')} ≠ ${Notation.html('V_R')} + ${Notation.html('V_L')} + ${Notation.html('V_C')}。</li>
-        <li>共振の近くで ${Notation.html('R')} が小さいと、${Notation.html('V_L')}・${Notation.html('V_C')} が電源電圧より大きくなることがある（図で ${Notation.html('R')} を小さくして共振させてみる）。</li>
-      </ul>`,
+    exam: {
+      lead: '交流回路の計算は、過去12回の理論で約40問（論点名から数えた目安）。ほぼ毎回出る。',
+      often: [
+        '$X_L$ は周波数に比例、$X_C$ は周波数に反比例。',
+        '共振（$X_L$ = $X_C$）では $Z$ = $R$ で最小、電流は最大、電流と電圧は同じ向き（同相）。',
+      ],
+      traps: [
+        '電圧の大きさはそのまま足せない。$V$ ≠ $V_R$ + $V_L$ + $V_C$（矢印で足す）。',
+        '共振の近くで $R$ が小さいと、$V_L$・$V_C$ が電源電圧より大きくなることがある（図で $R$ を小さくして共振させてみる）。',
+      ],
+    },
     conditions: `電源電圧 ${Notation.html('V')} = ${SOURCE_VOLTAGE} V（一定）`,
-    notesHtml: `
-      <h2>しくみ</h2>
-      <p>直列回路では、どの素子にも同じ電流 ${Notation.html('I')} が流れる。そこで ${Notation.html('I')} を横向きの基準にして電圧を描く。</p>
-      <ul>
-        <li>抵抗の電圧 ${Notation.html('V_R')} は ${Notation.html('I')} と同じ向き。</li>
-        <li>コイルの電圧 ${Notation.html('V_L')} は 90° 進む（上向き）。</li>
-        <li>コンデンサの電圧 ${Notation.html('V_C')} は 90° 遅れる（下向き）。</li>
-      </ul>
-      <p>上下の ${Notation.html('V_L')} と ${Notation.html('V_C')} は打ち消し合い、残った ${Notation.html('V_L')} − ${Notation.html('V_C')} と ${Notation.html('V_R')} を矢印で足したものが電源電圧 ${Notation.html('V')} になる。</p>
-      <h2>公式</h2>
-      <ul class="formulas">
-        <li>${Notation.html('X_L')} = 2π${Notation.html('fL')}　　${Notation.html('X_C')} = 1 / (2π${Notation.html('fC')})</li>
-        <li>${Notation.html('Z')} = √(${Notation.html('R')}² + (${Notation.html('X_L')} − ${Notation.html('X_C')})²)　　${Notation.html('I')} = ${Notation.html('V')} / ${Notation.html('Z')}</li>
-        <li>cos${Notation.html('φ')} = ${Notation.html('R')} / ${Notation.html('Z')}</li>
-        <li>${Notation.html('f_0')} = 1 / (2π√(${Notation.html('LC')}))</li>
-      </ul>
-      <p class="symbols">${Notation.html('R')}：抵抗［Ω］、${Notation.html('L')}：インダクタンス［H］、${Notation.html('C')}：静電容量［F］、${Notation.html('f')}：周波数［Hz］、${Notation.html('X_L')}・${Notation.html('X_C')}：リアクタンス［Ω］、${Notation.html('Z')}：インピーダンス［Ω］、${Notation.html('φ')}：電流と電圧のずれの角度</p>`,
+    explain: {
+      points: [
+        '直列では電流がどこも同じ。電流を基準にして、電圧を矢印で足す。',
+        'コイルの電圧は90°進み、コンデンサの電圧は90°遅れて、打ち消し合う。',
+        '$X_L$ = $X_C$ の時が共振。インピーダンスは $R$ だけで最小、電流は最大。',
+      ],
+      look: [
+        ['arrow', 'q-current', '赤い矢印 $I$＝電流。直列ではどこも同じなので、向きの基準にする。'],
+        ['arrow', 'q-voltage', '青い太い矢印 $V$＝電源電圧。ほかの電圧の矢印を足したもの。'],
+        ['arrow', 'q-active', '緑の矢印 $V_R$＝抵抗の電圧。$I$ と同じ向き。'],
+        ['arrow', 'q-reactive', '紫の矢印 $V_L$＝コイルの電圧。90°進む（上向き）。'],
+        ['dashed', 'q-reactive', '紫の点線 $V_C$＝コンデンサの電圧。90°遅れる（下向き）。'],
+        ['arc', 'ink', '弧 φ＝電圧と電流のずれ。矢印の縦の成分が、右の波のその瞬間の値。'],
+        ['curve', 'q-current', '赤い山の曲線（下）＝周波数を変えた時の電流。頂上が共振周波数 $f_0$。'],
+      ],
+      formulas: [
+        ['X_L = 2πfL', 'コイルのリアクタンスは、周波数に比例する。', 'コイルの「交流の抵抗」を求める時'],
+        ['X_C = 1 ÷ (2πfC)', 'コンデンサのリアクタンスは、周波数に反比例する。', 'コンデンサの「交流の抵抗」を求める時'],
+        ['Z = √(R² + (X_L − X_C)²)', 'インピーダンスは、$R$ と $X_L$ − $X_C$ でできる直角三角形の斜辺。', '回路全体の「交流の抵抗」を求める時'],
+        ['I = V ÷ Z', '交流のオームの法則。', '電流を求める時'],
+        ['cosφ = R ÷ Z', '力率は、$R$ と $Z$ の比。', '電圧と電流のずれ（力率）を求める時'],
+        ['f_0 = 1 ÷ (2π√(LC))', '共振周波数。', '共振する周波数を求める時'],
+      ],
+      symbols: [
+        ['R', '抵抗', 'Ω'],
+        ['L', 'インダクタンス（コイルの大きさ）', 'H'],
+        ['C', '静電容量（コンデンサの大きさ）', 'F'],
+        ['f', '周波数', 'Hz'],
+        ['X_L・X_C', 'コイル・コンデンサのリアクタンス', 'Ω'],
+        ['Z', 'インピーダンス', 'Ω'],
+        ['φ', '電圧と電流のずれの角度', '°'],
+      ],
+    },
   };
 })(this);

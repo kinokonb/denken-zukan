@@ -136,6 +136,33 @@ async function run(colorScheme) {
     await page.locator('.terms summary').click();
     expect(await page.locator('.terms').evaluate((d) => d.open), `${colorScheme} ${id}: ことばが開かない`);
     expect((await page.locator('.exam').count()) === 1, `${colorScheme} ${id}: 試験では がない`);
+    // 説明の形：3行でわかる・図の見かた（印の見本つき）・式・記号の表・試験では の2つの見出し。どこにも undefined や はみ出しがない
+    const explain = await page.evaluate(() => {
+      const notes = document.querySelector('.notes');
+      const exam = document.querySelector('.exam');
+      return {
+        points: notes.querySelectorAll('.points li').length,
+        looks: notes.querySelectorAll('.look li').length,
+        emptyMarks: [...notes.querySelectorAll('.look-mark')].filter((svg) => svg.childElementCount === 0).length,
+        // 印の色は、付けた量の class の色と同じ（ほかの指定に上書きされていない）
+        wrongColors: [...notes.querySelectorAll('.look-mark')].filter((svg) => {
+          const probe = document.createElement('span');
+          probe.className = [...svg.classList].find((c) => c !== 'look-mark');
+          document.body.append(probe);
+          const want = getComputedStyle(probe).color;
+          probe.remove();
+          return getComputedStyle(svg).color !== want;
+        }).length,
+        formulas: notes.querySelectorAll('.formula-rows li').length,
+        symbols: notes.querySelectorAll('.symbol-table tbody tr').length,
+        examHeads: exam.querySelectorAll('h3').length,
+        bad: /undefined|NaN|\$/.test(notes.textContent + exam.textContent),
+        wide: [notes, exam].some((el) => el.scrollWidth > el.clientWidth + 1),
+      };
+    });
+    expect(explain.points === 3 && explain.looks >= 2 && explain.emptyMarks === 0 && explain.wrongColors === 0 && explain.formulas >= 1 && explain.symbols >= 1 && explain.examHeads === 2,
+      `${colorScheme} ${id}: 説明の形がそろっていない ${JSON.stringify(explain)}`);
+    expect(!explain.bad && !explain.wide, `${colorScheme} ${id}: 説明に undefined・$ の残り・横のはみ出しがある`);
 
     // ボタンを順に押す（最後は初期値に戻す）
     const buttons = await page.locator('.presets button').count();

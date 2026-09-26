@@ -167,25 +167,45 @@
       { q: '電圧降下率の分母はどれ？', choices: ['送電端電圧', '受電端電圧', '電圧降下', '線電流'], answer: 1, why: '<var>ε</var> = (<var>V</var><sub>s</sub> − <var>V</var><sub>r</sub>) / <var>V</var><sub>r</sub> × 100 [%]。分母は受電端電圧。' },
       { q: '<var>X</var> が <var>R</var> より大きい送電線で、力率が悪く（<var>θ</var> が大きく）なると電圧降下は？', choices: ['小さくなる', '大きくなる', '変わらない', '0 になる'], answer: 1, why: '<var>X</var> sin<var>θ</var> の項が大きくなるため。つまみで力率を下げて確かめられる。' },
     ],
-    exam: `<p>電力科目で送電は約50問、配電は約40問（過去12回、論点名から数えた目安）。電圧降下の計算は、そのどちらにもよく出てくる。</p>
-      <ul>
-        <li>${Notation.html('R')}・${Notation.html('X')} は1線あたりの値。三相は √3 倍、単相2線は 2 倍（往復）になる。</li>
-        <li>電圧降下率の分母は受電端電圧 ${Notation.html('V_r')}。</li>
-        <li>力率が悪い（θ が大きい）ほど ${Notation.html('X')} sin${Notation.html('θ')} の項が大きくなる。架空送電線は ${Notation.html('X')} が ${Notation.html('R')} より大きいことが多く、この差が効く。</li>
-        <li>同じ電力を送るなら、力率を良くすると電流 ${Notation.html('I')} が減り、降下も損失も減る（法規の「力率改善」とつながる）。</li>
-      </ul>`,
+    exam: {
+      lead: '電力科目で送電は約50問、配電は約40問（過去12回、論点名から数えた目安）。電圧降下はどちらにもよく出る。',
+      often: [
+        '$R$・$X$ は1線あたりの値。三相は √3 倍、単相2線は 2 倍（往復）。',
+        '同じ電力を送るなら、力率を良くすると電流が減り、降下も損失も減る（法規の力率改善とつながる）。',
+      ],
+      traps: [
+        '電圧降下率の分母は受電端電圧 $V_r$（送電端ではない）。',
+        '進み力率では $X$sinθ の項が引き算になる（受電端の電圧が上がることもある）。',
+      ],
+    },
     conditions: `三相3線式、受電端電圧 ${Notation.html('V_r')} = ${Notation.number(RECEIVING_VOLTAGE, 0)} V（線間）`,
-    notesHtml: `
-      <h2>しくみ</h2>
-      <p>1相分で考える。受電端の相電圧 ${Notation.html('E_r')} を基準にすると、遅れ力率の電流 ${Notation.html('I')} は θ だけ下を向く。線路の抵抗で ${Notation.html('RI')}（${Notation.html('I')} と同じ向き）、リアクタンスで ${Notation.html('jXI')}（${Notation.html('I')} より 90° 進む向き）の電圧が加わり、送電端の相電圧 ${Notation.html('E_s')} になる。</p>
-      <p>${Notation.html('E_s')} の傾きは実際にはごく小さいので、横方向の成分だけを見れば大きさの差がほぼ求まる。これが近似式。</p>
-      <h2>公式</h2>
-      <ul class="formulas">
-        <li>三相3線式：${Notation.html('v')} = ${Notation.html('V_s')} − ${Notation.html('V_r')} ≒ √3 ${Notation.html('I')}(${Notation.html('R')} cos${Notation.html('θ')} + ${Notation.html('X')} sin${Notation.html('θ')})</li>
-        <li>単相2線式：${Notation.html('v')} ≒ 2${Notation.html('I')}(${Notation.html('R')} cos${Notation.html('θ')} + ${Notation.html('X')} sin${Notation.html('θ')})</li>
-        <li>電圧降下率：${Notation.html('ε')} = (${Notation.html('V_s')} − ${Notation.html('V_r')}) / ${Notation.html('V_r')} × 100 [%]</li>
-        <li>線路損失（三相3線式）：3${Notation.html('I')}²${Notation.html('R')}</li>
-      </ul>
-      <p class="symbols">${Notation.html('V_s')}・${Notation.html('V_r')}：送電端・受電端の線間電圧［V］、${Notation.html('E_s')}・${Notation.html('E_r')}：同じく相電圧［V］、${Notation.html('I')}：線電流［A］、${Notation.html('R')}・${Notation.html('X')}：1線の抵抗・リアクタンス［Ω］、cos${Notation.html('θ')}：負荷の力率</p>`,
+    explain: {
+      points: [
+        '送電線の抵抗とリアクタンスで電圧が下がり、受電端の電圧は送電端より低くなる。',
+        '下がる量は、ほぼ √3$I$($R$cosθ + $X$sinθ)（三相3線式）。',
+        '力率が悪いほど $X$sinθ が大きくなり、電圧降下が増える。',
+      ],
+      look: [
+        ['arrow', 'q-voltage', '青い矢印 $E_r$・$E_s$＝受電端・送電端の相電圧（1相分）。'],
+        ['arrow', 'q-current', '赤い矢印 $I$＝電流。遅れ力率なので θ だけ下を向く。'],
+        ['arrow', 'q-active', '緑の矢印 $RI$＝線路の抵抗による電圧。$I$ と同じ向き。'],
+        ['arrow', 'q-reactive', '紫の矢印 $jXI$＝線路のリアクタンスによる電圧。$I$ より90°進む。'],
+        ['arc', 'ink', '弧 θ＝電圧と電流のずれ（力率角）。$RI$・$jXI$ は見やすく拡大して描いている。'],
+      ],
+      formulas: [
+        ['v ≒ √3 I(R cosθ + X sinθ)', '三相3線式の電圧降下（近似）。', '三相の送電線・配電線'],
+        ['v ≒ 2I(R cosθ + X sinθ)', '単相2線式の電圧降下（往復で2倍）。', '単相の配電線'],
+        ['ε = (V_s − V_r) ÷ V_r × 100', '電圧降下率［%］。分母は受電端。', '受電端の何%下がったかを求める時'],
+        ['3I²R', '三相3線式の線路損失。', '電線で熱になる電力を求める時'],
+      ],
+      symbols: [
+        ['V_s・V_r', '送電端・受電端の線間電圧', 'V'],
+        ['E_s・E_r', '送電端・受電端の相電圧', 'V'],
+        ['I', '線電流', 'A'],
+        ['R・X', '1線の抵抗・リアクタンス', 'Ω'],
+        ['cosθ', '負荷の力率', '―'],
+        ['ε', '電圧降下率', '%'],
+      ],
+    },
   };
 })(this);

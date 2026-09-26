@@ -138,23 +138,45 @@
       { q: '1 kW の電気器具を 3 時間使ったときの電力量は？', choices: ['0.33 kWh', '1 kWh', '3 kWh', '3,000 kWh'], answer: 2, why: '<var>W</var> = <var>Pt</var> = 1 kW × 3 h = 3 kWh。' },
       { q: '10 Ω の抵抗に 2 A 流れているときの消費電力は？', choices: ['5 W', '20 W', '40 W', '200 W'], answer: 2, why: '<var>P</var> = <var>I</var>²<var>R</var> = 2² × 10 = 40 W（電圧は <var>RI</var> = 20 V なので <var>VI</var> = 40 W とも求まる）。' },
     ],
-    exam: `<p>電力・電力量・ジュール熱は、理論だけでなく、電力科目の送電損失、機械科目の効率、法規の電力量や負荷率の計算でも毎回のように使う。</p>
-      <ul>
-        <li>${Notation.html('P')} = ${Notation.html('VI')} = ${Notation.html('I')}²${Notation.html('R')} = ${Notation.html('V')}²/${Notation.html('R')}。わかっている量に合わせて使い分ける。</li>
-        <li>電線の損失は ${Notation.html('I')}²${Notation.html('R')}。電流が2倍なら損失は4倍になる（送電で高い電圧を使う理由）。</li>
-        <li>kWh と J の換算：1 kWh = 3.6 × 10⁶ J。</li>
-      </ul>`,
+    exam: {
+      lead: '電力・電力量・ジュール熱は、理論だけでなく、電力科目の送電損失、機械科目の効率、法規の電力量や負荷率でも毎回のように使う。',
+      often: [
+        '$P$ = $VI$ = $I$²$R$ = $V$²/$R$ を、わかっている量で使い分ける。',
+        '電線の損失は $I$²$R$。電流が2倍なら損失は4倍（送電で高い電圧を使う理由）。',
+      ],
+      traps: [
+        'kWh と J の換算：1 kWh = 3.6 × 10⁶ J。',
+        'ジュール熱の式の $t$ は秒。電力量の式では時間（h）を使うことが多い。',
+      ],
+    },
     conditions: '電圧は電池や電源の電圧、抵抗は電気器具（ヒーターなど）と考える',
-    notesHtml: `
-      <h2>しくみ</h2>
-      <p>電圧が大きいほど、電流が大きいほど、電気は1秒あたりに多くの仕事をする。これが電力 ${Notation.html('P')} = ${Notation.html('VI')}。オームの法則と組み合わせると ${Notation.html('I')}²${Notation.html('R')} や ${Notation.html('V')}²/${Notation.html('R')} とも書ける。</p>
-      <p>電力量はその電力を何時間使ったかの合計で、横が時間・縦が電力のグラフの面積になる。抵抗で使われた電力量は、そのまま熱（ジュール熱）になる。</p>
-      <h2>公式</h2>
-      <ul class="formulas">
-        <li>${Notation.html('P')} = ${Notation.html('VI')} = ${Notation.html('I')}²${Notation.html('R')} = ${Notation.html('V')}² / ${Notation.html('R')}</li>
-        <li>${Notation.html('W')} = ${Notation.html('Pt')}</li>
-        <li>ジュール熱：${Notation.html('Q')} = ${Notation.html('I')}²${Notation.html('Rt')}［J］（${Notation.html('t')} は秒）</li>
-      </ul>
-      <p class="symbols">${Notation.html('P')}：電力［W］、${Notation.html('V')}：電圧［V］、${Notation.html('I')}：電流［A］、${Notation.html('R')}：抵抗［Ω］、${Notation.html('W')}：電力量［W·h・kWh］、${Notation.html('t')}：時間［h（ジュール熱の式では s）］、${Notation.html('Q')}：熱量［J］</p>`,
+    explain: {
+      points: [
+        '電力は、電気が1秒あたりにする仕事（$P$ = $VI$）。',
+        '抵抗が同じなら、電圧を2倍にすると電力は4倍になる。',
+        '電力量は電力×時間。抵抗で使った分は熱になる。',
+      ],
+      look: [
+        ['curve', 'q-active', '緑の曲線（上）＝電圧と電力の関係。電圧が2倍で電力は4倍（放物線）。'],
+        ['dot', 'ink', '黒い点＝いまの電圧と電力。'],
+        ['area', 'q-active', '緑の長方形（下）＝電力量。横が時間、縦が電力で、面積が電力量。'],
+      ],
+      formulas: [
+        ['P = VI', '電力は、電圧と電流のかけ算。', '電圧と電流がわかる時'],
+        ['P = I²R', '電流の2乗×抵抗。', '電線の損失など、電流がわかる時'],
+        ['P = V² ÷ R', '電圧の2乗÷抵抗。', '電圧が決まっている器具（ヒーターなど）'],
+        ['W = Pt', '電力量は、電力×時間。', '使った電気の量（kWh）を求める時'],
+        ['Q = I²Rt', '抵抗で出る熱（ジュール熱）。$t$ は秒。', '熱量［J］を求める時'],
+      ],
+      symbols: [
+        ['P', '電力', 'W'],
+        ['V', '電圧', 'V'],
+        ['I', '電流', 'A'],
+        ['R', '抵抗', 'Ω'],
+        ['W', '電力量', 'W·h・kWh'],
+        ['t', '時間', 'h（熱の式は s）'],
+        ['Q', '熱量', 'J'],
+      ],
+    },
   };
 })(this);

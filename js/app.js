@@ -192,9 +192,9 @@
           <p class="conditions">${topic.conditions}</p>
         </div>
       </section>
-      <article class="notes">${topic.notesHtml}</article>
+      ${explainHtml(topic)}
       ${quizHtml(topic)}
-      ${topic.exam ? `<section class="exam"><h2>試験では</h2>${topic.exam}</section>` : ''}
+      ${examHtml(topic)}
       <nav class="next">
         <a href="#/topic/${next.topic.id}"><span class="next-label">次のレッスン（${next.subject.name}${next.number}・${next.unit.name}）</span>${next.topic.title} ›</a>
       </nav>`;
@@ -564,6 +564,63 @@
             <button type="button" class="replay" data-replay hidden>もう一度この状態にする</button>
           </li>`).join('')}
         </ol>
+      </section>`;
+  }
+
+  // ---- 説明（3行でわかる・図の見かた・式と記号）と試験では ----
+  // どのレッスンも同じ形で組み立てる。文の中の $R_1$ は量記号（斜体・添字）にする
+
+  function rich(text) {
+    return text.replace(/\$([^$]+)\$/g, (_, symbol) => Notation.html(symbol));
+  }
+
+  // 図の見かたの印（図の中の描き方と同じ形の小さな見本）。色は量の色の class で決まる
+  const LOOK_MARKS = {
+    dots: '<circle cx="5" cy="7" r="2.4"/><circle cx="14" cy="7" r="2.4"/><circle cx="23" cy="7" r="2.4"/>',
+    arrow: '<line x1="2" y1="7" x2="21" y2="7"/><polygon points="28,7 20,3 20,11"/>',
+    dashed: '<line x1="2" y1="7" x2="21" y2="7" stroke-dasharray="4 3"/><polygon points="28,7 20,3 20,11"/>',
+    line: '<line x1="2" y1="7" x2="28" y2="7"/>',
+    curve: '<path d="M2,12 Q16,12 28,2" class="open"/>',
+    bar: '<rect x="2" y="3" width="26" height="8" rx="1" class="soft"/>',
+    area: '<rect x="4" y="2" width="20" height="10" class="soft"/>',
+    dot: '<circle cx="15" cy="7" r="4"/>',
+    ring: '<circle cx="15" cy="7" r="4.5" class="open"/>',
+    arc: '<path d="M8,12 A10,10 0 0 1 18,2" class="open"/>',
+    text: '<rect x="9" y="2" width="10" height="10" rx="2"/>',
+  };
+
+  function explainHtml(topic) {
+    const { points, look, formulas, symbols } = topic.explain;
+    return `
+      <article class="notes">
+        <h2>3行でわかる</h2>
+        <ol class="points">${points.map((point) => `<li>${rich(point)}</li>`).join('')}</ol>
+        <h2>図の見かた</h2>
+        <ul class="look">
+          ${look.map(([mark, cls, text]) => `<li><svg class="look-mark ${cls}" viewBox="0 0 30 14" aria-hidden="true">${LOOK_MARKS[mark]}</svg><span>${rich(text)}</span></li>`).join('')}
+        </ul>
+        <h2>式</h2>
+        <ul class="formula-rows">
+          ${formulas.map(([formula, say, when]) => `<li><span class="formula">${Notation.html(formula)}</span><span class="say">${rich(say)}</span><span class="when">使う時：${rich(when)}</span></li>`).join('')}
+        </ul>
+        <table class="symbol-table">
+          <thead><tr><th>記号</th><th>意味</th><th>単位</th></tr></thead>
+          <tbody>${symbols.map(([symbol, meaning, unit]) => `<tr><td>${Notation.html(symbol)}</td><td>${rich(meaning)}</td><td>${unit}</td></tr>`).join('')}</tbody>
+        </table>
+      </article>`;
+  }
+
+  function examHtml(topic) {
+    const { lead, often, traps } = topic.exam;
+    const list = (items) => `<ul>${items.map((item) => `<li>${rich(item)}</li>`).join('')}</ul>`;
+    return `
+      <section class="exam">
+        <h2>試験では</h2>
+        <p>${rich(lead)}</p>
+        <h3>よく出る形</h3>
+        ${list(often)}
+        <h3>まちがえやすい所</h3>
+        ${list(traps)}
       </section>`;
   }
 
