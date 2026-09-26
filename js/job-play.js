@@ -2,7 +2,7 @@
 // スイッチを入れると、レバーが倒れ → 接点が付いた瞬間に一瞬止まり → 電流計の針がバネのように振れて電球が明るくなる。
 // 壊れる時は少し遅れて、もう一度止まってから火花と煙が出て図が揺れ、電球が消えて針が 0 に戻る。
 // 視差効果を減らす設定では、止まり・揺れ・火花・煙を省き、針と電球はすぐに結果の位置へ行く。
-// 出題は js/job.js、結果の計算と現場の図はレッスンの jobs の型（run・draw）が持つ。
+// 出題は js/job.js、結果の計算と現場の図はレッスンごとの遊び（js/plays/<レッスンid>.js）の型（run・draw）が持つ。
 (function (global) {
   'use strict';
 
@@ -56,7 +56,7 @@
 
   // records：{ load() → { レッスンid: { clears, best } }, saveClear(id, 秒) → { clears, best, isBest } }
   // onEnter・onLeave：ミッションに入る時・出る時（レッスンの動く図を止めて、戻す）
-  function create({ view, topic, records, formatSeconds, onEnter, onLeave }) {
+  function create({ view, topic, play, records, formatSeconds, onEnter, onLeave }) {
     const lab = view.querySelector('.lab');
     const entry = view.querySelector('.mission-entry');
     const panel = view.querySelector('.job-panel');
@@ -135,7 +135,7 @@
       if (!fx.contact && fx.time >= LEVER) {
         fx.contact = true;
         if (!prefersReducedMotion()) fx.stopLeft = CONTACT_STOP;
-        fx.meter.target = result.current;
+        fx.meter.target = result.meter;
         fx.lampTargets = result.lamps.slice();
       }
       if (result.burst && !fx.burst && fx.time >= LEVER + BURST_AFTER) {
@@ -337,7 +337,7 @@
 
     function showJob() {
       const item = set[index];
-      const template = topic.jobs[item.templateIndex];
+      const template = play.jobs[item.templateIndex];
       job = { template, values: item.values, input: item.start, attempts: 0, phase: 'decide', result: null };
       panel.currentJob = job; // 検査（tools/sim/check.mjs）が今の問題を知るため
       panel.dataset.kind = template.kind;
@@ -423,7 +423,7 @@
     }
 
     function begin() {
-      set = Job.buildSet(topic);
+      set = Job.buildSet(play.jobs);
       index = 0;
       combo = 0;
       firstTries = 0;

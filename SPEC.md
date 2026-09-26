@@ -15,7 +15,7 @@
   - 操作中に図の欄（.stage）の高さが変わると、つまみが指の下から動く。説明文（caption）は2行に収め、ミッションの欄は高さ固定（理由は幅375pxで3行まで）。どちらも `tools/sim/check.mjs` が照合する（全体で約30秒）。
   - ミッション中の印（`in-mission`）はレッスンの中の `.lab` に付ける。`#view` に付けるとページを移っても残り、次のレッスンで説明文などが消える（一度起きた）。
   - ミッションの候補は、答えがつまみの目盛りに乗る数だけ。足したら `tests/mission.test.js` のレッスン一覧にも入れる。
-  - ミッションは理論2が `jobs`（現場の依頼：js/job.js・js/job-play.js）、ほかは `missions`（旧形式：js/mission.js・app.js の createMissionPlay）。全レッスンを `jobs` にしたら旧形式を消す。
+  - ミッションは理論2が現場の依頼（中身は js/plays/series-parallel.js、仕組みは js/job.js・js/job-play.js）、ほかは `missions`（旧形式：js/mission.js・app.js の createMissionPlay）。全レッスンを `jobs` にしたら旧形式を消す。
   - 現場の図は毎コマ描き直すので、タップは図の枠（svg）で受け、CSS のアニメは使えない（動きは job-play.js の時間割で作る）。SVG の要素には hidden プロパティがないので `toggleAttribute('hidden', …)` で切り替える。
   - 学習系の共通方針 `~/.claude/instructions/learning-engagement.md`（クイズを主役にしない・汎用カードを並べない・予想→操作→結果→理由）に従う。見た目は方眼の紙とペン（ユーザーが「デザイン好き」と確認済み）。
   - 資料の過去問題集は `swift tools/reference.swift …` をサンドボックス外で読む（AGENTS.md の「資料」）。問題文は写さない。

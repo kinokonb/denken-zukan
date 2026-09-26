@@ -1,11 +1,11 @@
 // ミッション（現場の依頼）：依頼を読む → 値や個数を決める（計器は結果が出るまで見えない）→ スイッチを入れる → 目の前で結果が起きる。
 // 5問で1セット。ここは出題の組み立てと、決められる入力の一覧だけを持つ（DOMなし）。画面と演出は js/job-play.js。
-// 各レッスンの jobs は「型」の並び。型の kind で決め方が変わる：
+// レッスンごとの遊び（js/plays/<レッスンid>.js）の jobs は「型」の並び。型の kind で決め方が変わる：
 // - dial：つまみで値を決める（dial: { name, symbol, unit, min, max, step }）
 // - count：個数を決める（count: { min, max }）
 // - probe：図の部品をタップしてテスターで測り、選んだ1つを交換する（probe: { parts, measure(values, i) }）
 // どの型も cases（数値の組）、request(values)（依頼の文）、answer(values)（正しい入力）、
-// run(values, input)（スイッチを入れた結果：ok・流れる電流・電球の明るさ・壊れる所・理由）、draw(g, values, input, look)（現場の図）を持つ。
+// run(values, input)（スイッチを入れた結果：ok・計器の針 meter・電球の明るさ lamps・壊れる所 burst・計器の読み reading・理由 reason）、draw(g, values, input, look)（現場の図）を持つ。
 (function (global) {
   'use strict';
 
@@ -35,11 +35,11 @@
     return pool[Math.floor(rng() * pool.length)];
   }
 
-  function buildSet(topic, rng = Math.random, size = SET_SIZE) {
-    return Mission.pickCases(topic.jobs, rng, size).map(({ t, values }) => ({
+  function buildSet(templates, rng = Math.random, size = SET_SIZE) {
+    return Mission.pickCases(templates, rng, size).map(({ t, values }) => ({
       templateIndex: t,
       values,
-      start: startInput(topic.jobs[t], values, rng),
+      start: startInput(templates[t], values, rng),
     }));
   }
 

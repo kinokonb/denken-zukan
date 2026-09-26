@@ -332,13 +332,13 @@ async function checkJobs(page, id, label) {
 async function checkJobTextFits(page, id) {
   await page.locator('.mission-start').click();
   const overflows = await page.evaluate((topicId) => {
-    const topic = Object.values(window).find((v) => v && v.id === topicId && v.jobs);
+    const play = window.Plays[topicId];
     const panel = document.querySelector('.job-panel');
     const request = panel.querySelector('.job-request');
     const result = panel.querySelector('.job-result');
     const fits = () => panel.scrollHeight <= panel.clientHeight + 1 && result.scrollHeight <= result.clientHeight + 1;
     const bad = [];
-    for (const template of topic.jobs) {
+    for (const template of play.jobs) {
       for (const values of template.cases) {
         request.innerHTML = template.request(values);
         panel.querySelector('.job-control').hidden = false;

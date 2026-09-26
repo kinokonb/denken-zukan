@@ -148,6 +148,7 @@
     document.title = `${topic.title} – 電験ずかん`;
     rememberLesson(topic.id);
     const params = initialParams(topic);
+    const play = window.Plays?.[topic.id]; // ミッション（現場の依頼）のあるレッスンだけ（js/plays/）
     const index = ALL_TOPICS.findIndex((entry) => entry.topic === topic);
     const next = ALL_TOPICS[(index + 1) % ALL_TOPICS.length];
 
@@ -165,7 +166,7 @@
         <div class="stage">
           <figure class="figure-card">
             <svg class="figure" role="img" aria-label="${topic.title}の図"></svg>
-            ${topic.jobs ? JobPlay.sceneHtml() : ''}
+            ${play ? JobPlay.sceneHtml() : ''}
             <figcaption class="caption">
               <span class="caption-text" aria-live="polite"></span>
               ${topic.motion ? '<button type="button" class="motion-toggle"></button>' : ''}
@@ -173,11 +174,11 @@
           </figure>
           <dl class="readouts"></dl>
           ${topic.missions ? missionPanelHtml() : ''}
-          ${topic.jobs ? JobPlay.panelHtml() : ''}
+          ${play ? JobPlay.panelHtml() : ''}
         </div>
-        ${topic.missions || topic.jobs ? `
+        ${topic.missions || play ? `
           <section class="mission-entry">
-            <button type="button" class="mission-start">ミッション ${(topic.jobs ? Job : Mission).SET_SIZE}問に挑戦</button>
+            <button type="button" class="mission-start">ミッション ${(play ? Job : Mission).SET_SIZE}問に挑戦</button>
             <span class="mission-record"></span>
           </section>` : ''}
         ${triesHtml(topic)}
@@ -227,9 +228,9 @@
 
     const missionPlay = topic.missions ? createMissionPlay({ topic, params, inputs, setParam, update: () => update() }) : null;
     // ミッション（現場の依頼）の間は、レッスンの動く図を止めておく
-    if (topic.jobs) {
+    if (play) {
       JobPlay.create({
-        view, topic, formatSeconds,
+        view, topic, play, formatSeconds,
         records: { load: missionRecords, saveClear: saveMissionClear },
         onEnter: motion.hold,
         onLeave: motion.release,
