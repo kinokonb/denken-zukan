@@ -190,7 +190,7 @@ async function checkMotion(page, id, label) {
 
 // ミッション：始める → 動かせるのは1つのつまみだけ → 目盛りを順に動かすと当たりが出る（欄の高さは変わらない）
 // → 次へ … 5問でクリアと記録 → 閉じると元に戻る。ミッションのないレッスンには入口がない
-const WITH_MISSIONS = ['ohm', 'series-parallel', 'electric-power'];
+const WITH_MISSIONS = TOPICS;
 async function checkMissions(page, id, label) {
   const start = page.locator('.mission-start');
   if (!WITH_MISSIONS.includes(id)) {
@@ -212,8 +212,11 @@ async function checkMissions(page, id, label) {
         const height = document.querySelector('.stage').getBoundingClientRect().height;
         if (Math.abs(height - expectedHeight) >= 1) return { error: `ミッション中に図の欄の高さが変わる（${expectedHeight}→${height}）` };
         if (/NaN|Infinity/.test(document.querySelector('.mission-panel').textContent)) return { error: 'ミッションの欄に NaN' };
-        if (document.querySelector('.mission-panel').classList.contains('solved')) {
-          return { ok: true, locked: inputs.every((x) => x.disabled) };
+        const panel = document.querySelector('.mission-panel');
+        if (panel.classList.contains('solved')) {
+          const sub = panel.querySelector('.mission-sub');
+          const fits = panel.scrollHeight <= panel.clientHeight + 1 && sub.scrollHeight <= sub.clientHeight + 1;
+          return { ok: true, locked: inputs.every((x) => x.disabled), fits, text: panel.querySelector('.mission-text').textContent };
         }
       }
       return { error: '目盛りを全部動かしても当たらない' };
@@ -221,6 +224,7 @@ async function checkMissions(page, id, label) {
     expect(solved.ok, `${label} ${id}: ミッション${n}：${solved.error}`);
     if (!solved.ok) return;
     expect(solved.locked, `${label} ${id}: ミッション${n}で当たった後もつまみが動く`);
+    expect(solved.fits, `${label} ${id}: ミッション${n}「${solved.text}」の理由が欄に収まらない`);
     await page.locator('.mission-next').click();
   }
   const cleared = await page.evaluate(() => ({
@@ -237,6 +241,39 @@ async function checkMissions(page, id, label) {
     readouts: getComputedStyle(document.querySelector('.readouts')).display !== 'none',
   }));
   expect(closed.hidden && closed.enabled && closed.readouts, `${label} ${id}: 閉じても元に戻らない`);
+}
+
+// 幅の狭い iPhone（375px）で、全問題の文面（目標・今の値・当たりの理由）がミッションの欄に収まる
+async function checkMissionTextFits() {
+  const context = await browser.newContext({ viewport: { width: 375, height: 667 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  for (const id of WITH_MISSIONS) {
+    await page.goto(`${base}#/topic/${id}`);
+    await page.waitForSelector('svg.figure > *');
+    await page.locator('.mission-start').click();
+    const overflows = await page.evaluate((topicId) => {
+      const topic = Object.values(window).find((v) => v && v.id === topicId && v.missions);
+      const panel = document.querySelector('.mission-panel');
+      const text = panel.querySelector('.mission-text');
+      const sub = panel.querySelector('.mission-sub');
+      const fits = () => panel.scrollHeight <= panel.clientHeight + 1 && sub.scrollHeight <= sub.clientHeight + 1;
+      const bad = [];
+      topic.missions.forEach((template) => {
+        for (const values of template.cases) {
+          const params = { ...Mission.initialParams(topic), ...template.setup(values), [template.free]: template.answer(values) };
+          const result = topic.compute(params);
+          text.innerHTML = template.text(values);
+          sub.innerHTML = `${template.how(values)}　<strong>${template.now(result)}</strong>`;
+          if (!fits()) bad.push(`${text.textContent}（今の値）`);
+          sub.innerHTML = `<strong>○ ぴったり</strong>　${template.reason(values)}`;
+          if (!fits()) bad.push(`${text.textContent}（理由）`);
+        }
+      });
+      return bad;
+    }, id);
+    expect(overflows.length === 0, `375px の ${id}: 欄に収まらない文面 ${overflows.slice(0, 3).join(' / ')}${overflows.length > 3 ? ` ほか${overflows.length - 3}件` : ''}`);
+  }
+  await context.close();
 }
 
 // 視差効果を減らす設定では、止まった状態で開く
@@ -264,6 +301,7 @@ async function contactSheet(shots, file) {
 }
 
 await checkReducedMotion();
+await checkMissionTextFits();
 for (const scheme of ['light', 'dark']) {
   const shots = await run(scheme);
   await contactSheet(shots, path.join(outDir, `${scheme}.png`));

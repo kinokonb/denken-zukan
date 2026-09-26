@@ -8,7 +8,26 @@
   const HEIGHT = 250;
 
   function compute(p) {
-    return VoltageDrop.analyze({ Vr: RECEIVING_VOLTAGE, I: p.I, R: p.R, X: p.X, powerFactor: p.cos });
+    return { ...VoltageDrop.analyze({ Vr: RECEIVING_VOLTAGE, I: p.I, R: p.R, X: p.X, powerFactor: p.cos }), I: p.I };
+  }
+
+  // 1 A あたりの電圧降下 [V]
+  function perAmpere({ cos, R, X }) {
+    return Math.sqrt(3) * (R * cos + X * Math.sqrt(1 - cos * cos));
+  }
+
+  // 降下率が limit % を超えない、いちばん大きい電流（負荷電流のつまみの目盛りで）
+  function largestCurrent(c) {
+    const allowed = (RECEIVING_VOLTAGE * c.limit) / 100;
+    const I = Math.floor(allowed / perAmpere(c) / 5) * 5;
+    return Math.min(300, I);
+  }
+
+  // 降下率が limit % 以下になる、いちばん大きい1線の抵抗（抵抗のつまみの目盛りで）
+  function largestResistance({ I, cos, X, limit }) {
+    const allowed = (RECEIVING_VOLTAGE * limit) / 100 / (Math.sqrt(3) * I);
+    const R = (allowed - X * Math.sqrt(1 - cos * cos)) / cos;
+    return Math.floor(R * 10 + 1e-9) / 10;
   }
 
   function draw(svg, p, r) {
@@ -94,6 +113,42 @@
       { name: '電圧降下率', symbol: 'ε', value: Notation.number(r.dropRate, 2), unit: '%' },
       { name: '送電端電圧', symbol: 'V_s', value: Notation.number(r.VsApprox, 0), unit: 'V' },
       { name: '線路損失', symbol: '3I²R', value: Notation.number(r.lineLoss / 1000, 1), unit: 'kW' },
+    ],
+    // ミッション：電圧降下率の条件を満たす（答えはつまみの目盛りの上で当たりになる数だけ）
+    missions: [
+      {
+        free: 'cos',
+        cases: [[150, 1, 2, 6], [100, 1, 2, 4], [200, 0.5, 1.5, 5], [120, 1.5, 2.5, 7], [250, 0.5, 1, 5]].map(([I, R, X, limit]) => ({ I, R, X, limit })),
+        setup: ({ I, R, X }) => ({ I, R, X }),
+        answer: () => 1,
+        text: ({ limit }) => `電圧降下率を ${limit}% 以下にしよう`,
+        how: ({ I }) => `電流 ${I} A・電線は固定。負荷の力率 cos<var>θ</var> を上げる`,
+        now: (r) => `いま ${Notation.number(r.dropRate, 2)}%`,
+        hit: (r, { limit }) => r.dropRate <= limit,
+        reason: ({ limit }) => `力率を上げると <var>X</var> sin<var>θ</var> の項が小さくなり、降下が減る。${limit}% = ${Notation.number(RECEIVING_VOLTAGE * limit / 100, 0)} V 以内に入った。`,
+      },
+      {
+        free: 'I',
+        cases: [[0.8, 1, 2, 5], [0.9, 1, 1.5, 5], [1, 1, 2, 5], [0.8, 0.5, 1, 3], [0.7, 1.2, 2, 6], [0.85, 0.8, 1.6, 4]].map(([cos, R, X, limit]) => ({ cos, R, X, limit })),
+        setup: ({ cos, R, X }) => ({ cos, R, X }),
+        answer: (c) => largestCurrent(c),
+        text: ({ limit }) => `降下率 ${limit}% を超えない、いちばん大きい電流にしよう`,
+        how: ({ cos }) => `力率 ${cos.toFixed(2)}・電線は固定。負荷電流 <var>I</var> を動かす`,
+        now: (r) => `いま ${Notation.number(r.dropRate, 2)}%`,
+        hit: (r, c) => r.I === largestCurrent(c),
+        reason: (c) => `1 A あたり √3(<var>R</var> cos<var>θ</var> + <var>X</var> sin<var>θ</var>) ≒ ${Notation.number(perAmpere(c), 2)} V 下がる。${c.limit}%（${Notation.number(RECEIVING_VOLTAGE * c.limit / 100, 0)} V）までなら ${largestCurrent(c)} A。`,
+      },
+      {
+        free: 'R',
+        cases: [[150, 0.8, 1, 5], [200, 0.9, 0.5, 4], [100, 1, 2, 3], [250, 0.8, 0.8, 6], [120, 0.85, 1.2, 5]].map(([I, cos, X, limit]) => ({ I, cos, X, limit })),
+        setup: ({ I, cos, X }) => ({ I, cos, X }),
+        answer: (c) => largestResistance(c),
+        text: ({ limit }) => `電線を太くして、降下率を ${limit}% 以下にしよう`,
+        how: ({ I }) => `電流 ${I} A・力率は固定。1線の抵抗 <var>R</var> を小さくする（太い電線ほど小さい）`,
+        now: (r) => `いま ${Notation.number(r.dropRate, 2)}%`,
+        hit: (r, { limit }) => r.dropRate <= limit,
+        reason: (c) => `抵抗を ${largestResistance(c)} Ω 以下にすると ${c.limit}% に収まる。電線を太くすると <var>RI</var> cos<var>θ</var> の分が減る。`,
+      },
     ],
     terms: [
       ['送電端・受電端', '電線で電気を送り出す側（発電所・変電所）と、受け取る側（工場など）。'],

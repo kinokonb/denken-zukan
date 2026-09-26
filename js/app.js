@@ -314,6 +314,8 @@
   function createMissionPlay({ topic, params, inputs, setParam, update }) {
     const panel = view.querySelector('.mission-panel');
     const entry = view.querySelector('.mission-entry');
+    // ミッション中の印はレッスンの中（.lab）に付ける。ページを移れば .lab ごと作り直されて消える
+    const lab = view.querySelector('.lab');
     const $ = (selector) => panel.querySelector(selector);
     let set = null;
     let index = 0;
@@ -355,7 +357,7 @@
       clearInterval(timer);
       timer = setInterval(showTime, 500);
       showTime();
-      view.classList.add('in-mission');
+      lab.classList.add('in-mission');
       panel.hidden = false;
       $('.mission-again').hidden = true;
       $('.mission-quit').textContent = 'やめる';
@@ -431,7 +433,7 @@
       clearInterval(timer);
       set = null;
       panel.hidden = true;
-      view.classList.remove('in-mission');
+      lab.classList.remove('in-mission');
       unlockAll();
       for (const [key, value] of Object.entries(Mission.initialParams(topic))) setParam(key, value);
       update();

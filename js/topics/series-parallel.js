@@ -124,7 +124,7 @@
         hit: (r, { Rp }) => Math.abs(r.parallel.R - Rp) < 1e-9,
         reason: ({ R1, Rp }) => {
           const R2 = (R1 * Rp) / (R1 - Rp);
-          return `和分の積：${R1} × ${R2} ÷ (${R1} + ${R2}) = ${Rp} Ω。並列の合成は小さい方の ${Math.min(R1, R2)} Ω より小さくなる。`;
+          return `和分の積 ${R1}×${R2}÷(${R1}+${R2}) = ${Rp} Ω。小さい方の ${Math.min(R1, R2)} Ω より小さい。`;
         },
       },
       {
@@ -138,7 +138,7 @@
         hit: (r, { V1 }) => Math.abs(r.series.V1 - V1) < 1e-9,
         reason: ({ V, R1, V1 }) => {
           const R2 = (R1 * (V - V1)) / V1;
-          return `電圧は抵抗の比 ${R1} : ${R2} で分かれるので、<var>R</var><sub>1</sub> には ${V} V の ${R1}/${R1 + R2} = ${V1} V。`;
+          return `電圧は ${R1} : ${R2} に分かれ、<var>R</var><sub>1</sub> には ${V} V の ${R1}/${R1 + R2} = ${V1} V。`;
         },
       },
       {
@@ -150,7 +150,7 @@
         how: ({ V, R2 }) => `電池 ${V} V・<var>R</var><sub>2</sub> ${R2} Ω のまま。<var>R</var><sub>1</sub> を動かす`,
         now: (r) => `いま ${Notation.number(r.parallel.I, 2)} A`,
         hit: (r, { I }) => Math.abs(r.parallel.I - I) < 1e-9,
-        reason: ({ V, R2, I }) => `<var>R</var><sub>2</sub> の枝に ${V} ÷ ${R2} = ${V / R2} A、残りの ${I - V / R2} A が <var>R</var><sub>1</sub> の枝（${V} ÷ ${V / (I - V / R2)}）。並列の電流は枝の足し算。`,
+        reason: ({ V, R2, I }) => `<var>R</var><sub>2</sub> の枝 ${V}÷${R2} = ${V / R2} A、<var>R</var><sub>1</sub> の枝 ${V}÷${V / (I - V / R2)} = ${I - V / R2} A。合わせて ${I} A。`,
       },
     ],
     terms: [
