@@ -6,6 +6,7 @@ const VoltageDrop = require('../js/calc/voltage-drop.js');
 const InductionMotor = require('../js/calc/induction-motor.js');
 const PowerFactor = require('../js/calc/power-factor.js');
 const DcCircuit = require('../js/calc/dc-circuit.js');
+const AcWave = require('../js/calc/ac-wave.js');
 
 const near = (actual, expected, tolerance, label) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} は ${expected}±${tolerance} ではない`);
@@ -105,6 +106,20 @@ test('内部抵抗：E=6V・r=1Ω・R=5Ω で I=1A・V=5V・P=5W、R=r=1Ω で�
   near(best.P, 9, 1e-12, 'R = r の電力');
   near(best.V, 3, 1e-12, 'R = r の端子電圧');
   near(r.shortCircuit, 6, 1e-12, '短絡電流');
+});
+
+test('正弦波：最大値 141.4 V の実効値は 100 V、平均値は約 90 V、30° の瞬時値は最大値の半分', () => {
+  near(AcWave.rmsFromPeak(100 * Math.SQRT2), 100, 1e-9, '実効値');
+  near(AcWave.averageFromPeak(100 * Math.SQRT2), 90.03, 0.01, '平均値');
+  near(AcWave.instantaneous(200, 30), 100, 1e-9, '瞬時値');
+  near(AcWave.instantaneous(200, 210), -100, 1e-9, '負の瞬時値');
+});
+
+test('直流と交流を重ねた実効値：30 V と 40 V で 50 V（2乗の平均の平方根を数値でも確かめる）', () => {
+  near(AcWave.mixedRms(30, 40), 50, 1e-12, '式');
+  const v = AcWave.samples(30, 40);
+  const rms = Math.sqrt(v.reduce((sum, x) => sum + x * x, 0) / v.length);
+  near(rms, 50, 1e-9, '数値');
 });
 
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };
