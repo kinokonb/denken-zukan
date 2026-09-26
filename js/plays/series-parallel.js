@@ -58,19 +58,6 @@
     Svg.note(g, x, readingY, look.reading ?? '？ V', { cls: look.reading ? 'value q-voltage' : 'faint', anchor: 'middle' });
   }
 
-  // テスターの2本のリード線。測る部品のある側（上・下・左・右）の計器の縁から、部品の両端へ少したるませて引く
-  function drawLeads(g, [tx, ty], ends) {
-    const cx = (ends[0][0] + ends[1][0]) / 2 - tx;
-    const cy = (ends[0][1] + ends[1][1]) / 2 - ty;
-    const vertical = Math.abs(cy) > Math.abs(cx);
-    ends.forEach(([ex, ey], k) => {
-      const offset = k === 0 ? -9 : 9;
-      const [sx, sy] = vertical ? [tx + offset, ty + Math.sign(cy) * 22] : [tx + Math.sign(cx) * 22, ty + offset];
-      Svg.el(g, 'path', { d: `M${sx},${sy} Q${(sx + ex) / 2},${(sy + ey) / 2 + 8} ${ex},${ey}`, class: 'lead' });
-      Svg.el(g, 'circle', { cx: ex, cy: ey, r: 2.4, class: 'lead-tip' });
-    });
-  }
-
   function drawLampJob(g, { V, Vr, Ir }, R, look) {
     const left = 40, right = 300, top = 64, bottom = 196, mid = 130;
     Svg.wire(g, [[left, mid], [left, top], [right, top], [right, bottom], [left, bottom], [left, mid]]);
@@ -127,7 +114,7 @@
     Svg.note(g, TESTER.x, TESTER.y - 36, 'テスター', { cls: 'faint', anchor: 'middle' });
     Svg.gauge(g, TESTER.x, TESTER.y, { value: look.probe ? look.probe.needle : 0, max: V * 1.25, letter: 'V', cls: 'q-voltage' });
     Svg.note(g, TESTER.x, TESTER.y + 40, look.probe ? look.probe.reading : '電球をタップして測る', { cls: look.probe ? 'value q-voltage' : 'faint', anchor: 'middle' });
-    if (look.probe) drawLeads(g, [TESTER.x, TESTER.y], lampEnds(PROBE_LAMPS[look.probe.index]));
+    if (look.probe) Svg.leads(g, [TESTER.x, TESTER.y], lampEnds(PROBE_LAMPS[look.probe.index]));
     // タップできる所（決めている間だけ）。測っている電球は実線の輪
     if (look.deciding) {
       PROBE_LAMPS.forEach((lamp, i) => {
@@ -231,7 +218,7 @@
     Svg.resistor(g, LOOP.right, LOOP.mid, { vertical: true });
     Svg.note(g, LOOP.right - 16, LOOP.mid, `R₂ = ${R2} Ω`, { cls: 'value q-active', anchor: 'end' });
     drawVoltmeter(g, SERIES_METER[0], SERIES_METER[1], look, 24, guess, SERIES_METER[1] + 44);
-    drawLeads(g, SERIES_METER, [[SERIES_R1.x - 22, SERIES_R1.y], [SERIES_R1.x + 22, SERIES_R1.y]]);
+    Svg.leads(g, SERIES_METER, [[SERIES_R1.x - 22, SERIES_R1.y], [SERIES_R1.x + 22, SERIES_R1.y]]);
     Svg.note(g, 180, JOB_NOTE_Y, '点線の針があなたの予想', { cls: 'faint', anchor: 'middle' });
     return { lamps: [] };
   }
@@ -296,7 +283,7 @@
       Svg.note(g, nx, ny, `${i + 1}`, { cls: 'value', anchor: 'middle' });
     });
     drawVoltmeter(g, BREAK_TESTER[0], BREAK_TESTER[1], look, 24, guess);
-    drawLeads(g, BREAK_TESTER, lampEnds(BREAK_LAMPS[target]));
+    Svg.leads(g, BREAK_TESTER, lampEnds(BREAK_LAMPS[target]));
     Svg.note(g, 180, JOB_NOTE_Y, '点線の針があなたの予想', { cls: 'faint', anchor: 'middle' });
     return { lamps: BREAK_LAMPS.map((lamp) => [lamp.x, lamp.y]) };
   }

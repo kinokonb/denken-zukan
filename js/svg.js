@@ -249,8 +249,21 @@
     return g;
   }
 
+  // テスターの2本のリード線。測る部品のある側（上・下・左・右）の計器の縁から、部品の両端 ends へ少したるませて引く
+  function leads(parent, [tx, ty], ends) {
+    const cx = (ends[0][0] + ends[1][0]) / 2 - tx;
+    const cy = (ends[0][1] + ends[1][1]) / 2 - ty;
+    const vertical = Math.abs(cy) > Math.abs(cx);
+    ends.forEach(([ex, ey], k) => {
+      const offset = k === 0 ? -9 : 9;
+      const [sx, sy] = vertical ? [tx + offset, ty + Math.sign(cy) * 22] : [tx + Math.sign(cx) * 22, ty + offset];
+      el(parent, 'path', { d: `M${sx},${sy} Q${(sx + ex) / 2},${(sy + ey) / 2 + 8} ${ex},${ey}`, class: 'lead' });
+      el(parent, 'circle', { cx: ex, cy: ey, r: 2.4, class: 'lead-tip' });
+    });
+  }
+
   global.Svg = {
     el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, resistor, flowDots, splitBar,
-    glowDefs, lamp, fuse, knifeSwitch, gauge,
+    glowDefs, lamp, fuse, knifeSwitch, gauge, leads,
   };
 })(this);
