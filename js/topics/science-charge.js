@@ -43,10 +43,10 @@
     Svg.wire(g, loopPath());
     Svg.battery(g, left, mid);
     Svg.lamp(g, right, mid, { level: Math.min(r.I / 3, 1.2) });
-    Svg.arrow(g, 150, top - 14, 196, top - 14, { cls: 'q-current', width: 2 });
-    Svg.note(g, 204, top - 14, '電流の向き（＋→−）', { cls: 'value q-current', anchor: 'start' });
-    Svg.arrow(g, 196, top + 14, 150, top + 14, { cls: 'ink', width: 1.5 });
-    Svg.note(g, 204, top + 14, '電子の向き（−→＋）', { cls: 'value', anchor: 'start' });
+    Svg.arrow(g, 96, top - 14, 136, top - 14, { cls: 'q-current', width: 2 });
+    Svg.note(g, 144, top - 14, '電流の向き（＋→−）', { cls: 'value q-current', anchor: 'start' });
+    Svg.arrow(g, 136, top + 16, 96, top + 16, { cls: 'ink', width: 1.5 });
+    Svg.note(g, 144, top + 16, '電子の向き（−→＋）', { cls: 'value', anchor: 'start' });
     Svg.note(g, left + 20, mid + 22, `${format(r.I)} A`, { cls: 'value q-current' });
     drawCharge(svg, r);
   }
@@ -64,7 +64,7 @@
     for (const seconds of [0, 2, 4, 6, 8, 10]) Svg.note(g, toX(seconds), y + h + 12, String(seconds), { cls: 'faint', anchor: 'middle' });
     for (const amperes of [0, 5]) Svg.note(g, x - 6, y + h - (amperes / maxI) * h, String(amperes), { cls: 'faint', anchor: 'end' });
     Svg.note(g, x + w, y + h + 25, '時間 t [s]', { cls: 'faint', anchor: 'end' });
-    Svg.note(g, x - 6, y - 8, 'I [A]', { cls: 'faint', anchor: 'end' });
+    Svg.note(g, x + 6, y - 8, 'I [A]', { cls: 'faint' });
     Svg.el(g, 'rect', { x, y: y + h - height, width: toX(t) - x, height, class: 'tile ink' });
   }
 

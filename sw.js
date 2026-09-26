@@ -27,6 +27,7 @@ const ASSETS = [
   'js/topics/math-prefix.js',
   'js/topics/math-square.js',
   'js/topics/science-charge.js',
+  'js/topics/science-energy.js',
   'js/topics/ohm.js',
   'js/topics/series-parallel.js',
   'js/topics/electric-power.js',
