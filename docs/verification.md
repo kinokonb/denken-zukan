@@ -4,6 +4,7 @@
 - 計算テスト14件PASS（`node --test tests/*.test.js`）：RLC（R=40Ω・XL=40Ω・XC=10Ω → Z=50Ω・I=2A・力率0.8遅れ、L=0.1H・C=100μF の共振 50.3Hz で Z=R）、電圧降下（100A・1Ω・2Ω・力率0.8 → 約346V・5.25%、力率1・X=0 で近似＝正確）、誘導電動機（4極50Hz → 1500 min⁻¹、P2:Pc2:Po = 1:s:1−s、比例推移、最大トルクのすべりと値を細かい探索と照合）、力率改善（400kW・0.8→0.95 に約168kvar、Qc=Q1 で力率1・損失0.64倍、入れすぎで進み）、オフライン保存の一覧（配信ファイルと ASSETS・index.html・manifest の参照が一致）。
 - `node tools/sim/check.mjs`（iPhone幅 430×932、ライト・ダーク）：目次4テーマと小さな図、各テーマの図に NaN なし・横のはみ出しなし、全つまみを両端へ動かしても NaN なし・図と計算結果の高さが変わらない、全ボタンで NaN なし、Service Worker が ready、通信を切って目次とテーマを開き直せる、コンソールのエラーなし。
 - playtest エラーなし。
+- 公開版（https://kinokonb.github.io/denken-zukan/ 、commit d98df46）で `node tools/sim/check.mjs <出力> <URL>` OK。保存一覧の全ファイルと sw.js が repo と同じ内容。
 - 一覧画像で文字の重なりを確認し、4か所を直した（トルク図の左上、電圧降下の RI、力率の Q1、共振曲線の f0）。
 
 ### 人間による確認事項

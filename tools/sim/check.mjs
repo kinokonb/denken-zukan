@@ -1,6 +1,7 @@
 // iPhone幅（430×932）で全画面を開き、つまみ・ボタン・オフライン再読み込みを確かめる。
-// 使い方: node tools/sim/check.mjs [出力フォルダ]
+// 使い方: node tools/sim/check.mjs [出力フォルダ] [公開URL]
 //   出力フォルダに light.png / dark.png（目次と4テーマを横に並べた一覧）を書き出す。
+//   公開URLを渡すと、repoの代わりに公開版を確かめ、sw.js の保存一覧の全ファイルがrepoと同じかも照合する。
 // 失敗があれば一覧を出して終了コード1で終わる。playwright は playtest ツールのものを借りる。
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +15,7 @@ const { chromium } = require('playwright');
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const outDir = path.resolve(process.argv[2] || os.tmpdir());
+const publishedUrl = process.argv[3];
 const TOPICS = ['rlc', 'voltage-drop', 'induction-motor', 'power-factor'];
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
@@ -28,10 +30,20 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(file).pipe(res);
 });
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-const base = `http://127.0.0.1:${server.address().port}/`;
+const base = publishedUrl ? publishedUrl.replace(/\/?$/, '/') : `http://127.0.0.1:${server.address().port}/`;
 
 const failures = [];
 const expect = (ok, message) => { if (!ok) failures.push(message); };
+
+if (publishedUrl) {
+  const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+  const assets = [...sw.match(/const ASSETS = \[([\s\S]*?)\];/)[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  for (const asset of ['sw.js', ...assets.filter((a) => a !== './')]) {
+    const response = await fetch(new URL(asset, base), { cache: 'no-store' });
+    const published = Buffer.from(await response.arrayBuffer());
+    expect(response.ok && published.equals(fs.readFileSync(path.join(root, asset))), `公開版の ${asset} がrepoと違う（${response.status}）`);
+  }
+}
 const browser = await chromium.launch();
 
 async function run(colorScheme) {

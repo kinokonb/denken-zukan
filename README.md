@@ -43,6 +43,7 @@ node ~/.claude/tools/playtest/playtest.mjs .
 node tools/sim/check.mjs <出力フォルダ>
 ```
 `tools/sim/check.mjs` は iPhone幅（430×932）のライト・ダークで、目次と全テーマを開き、つまみを両端まで動かし、ボタンを押し、通信を切って開き直す。図の NaN、横のはみ出し、操作中の図の高さの変化、コンソールのエラーを失敗として数え、目次と各テーマを並べた一覧画像（`light.png`・`dark.png`）を書き出す。
+配備後は `node tools/sim/check.mjs <出力フォルダ> https://kinokonb.github.io/denken-zukan/` で公開版を同じように確かめ、保存一覧の全ファイルがrepoと同じかも照合する。
 
 ## 配備
 `main` を push すると GitHub Pages（`main` の直下）が1分ほどで公開する。出荷のたびに `js/version.js` の版を上げ、公開版の目次の下の版表示で確かめる。
