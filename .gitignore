@@ -1,0 +1,73 @@
+# Common safe baseline. Add project-specific rules as needed.
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# VS Code (keep shared workspace recommendations available)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+
+# Temporary files and logs
+*~
+*.swp
+*.swo
+*.tmp
+*.temp
+*.log
+logs/
+tmp/
+temp/
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+
+# Common build output
+build/
+Build/
+dist/
+out/
+target/
+DerivedData/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+.npm/
+.yarn/cache/
+.pnpm-store/
+coverage/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+
+# Android / Gradle generated files
+.gradle/
+.idea/
+local.properties
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+**/build/
