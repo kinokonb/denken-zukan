@@ -355,7 +355,7 @@ async function solveJobs(page, id, label, count, expectBasicsButton) {
     await setInput(job, wrong);
     if (job.kind === 'probe') {
       const texts = await page.locator('.job-scene text').allTextContents();
-      expect(texts.filter((t) => /^\d+ V$/.test(t)).length >= 2, `${label} ${id}: ${n}問目：テスターの読みが出ない`);
+      expect(texts.filter((t) => /^[\d.]+ [VA]$/.test(t)).length >= 2, `${label} ${id}: ${n}問目：テスターの読みが出ない`);
     }
     const miss = await runAndRead();
     expect(miss.failed && !miss.solved, `${label} ${id}: ${n}問目：まちがった入力で失敗にならない（${miss.text}）`);

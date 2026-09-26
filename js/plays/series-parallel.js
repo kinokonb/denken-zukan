@@ -333,7 +333,9 @@
       cases: [6, 12, 24].flatMap((V) => [0, 1, 2, 3].map((broken) => ({ V, broken }))),
       probe: {
         parts: PROBE_LAMPS.length,
+        hint: '電球をタップすると、テスターがその電球にかかる電圧を測る',
         measure: ({ V, broken }, i) => DcCircuit.seriesLampsWithBreak({ V, n: PROBE_LAMPS.length, broken }).voltages[i],
+        reading: (volts) => `${Notation.number(volts, 0)} V`,
       },
       action: 'この電球を交換',
       request: () => '電球が1つもつかない。テスターで測って、切れた1個を交換しよう',

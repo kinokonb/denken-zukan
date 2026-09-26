@@ -332,7 +332,7 @@
             <button type="button" data-step="1" aria-label="1個ふやす">＋</button>
           </div>`;
       } else {
-        control.innerHTML = '<p class="job-hint">電球をタップすると、テスターがその電球にかかる電圧を測る</p>';
+        control.innerHTML = `<p class="job-hint">${template.probe.hint}</p>`;
       }
     }
 
@@ -486,12 +486,12 @@
       onLeave();
     }
 
-    // テスター：決めている間に電球をタップすると、その電球にかかる電圧を測る（選んだ電球が「交換」の相手になる）
+    // テスター：決めている間に部品をタップすると、その部品を測る（選んだ部品が「交換」「取り付け」の相手になる）
     function probe(i) {
       if (!job || job.phase !== 'decide' || job.template.kind !== 'probe') return;
       job.input = i;
-      const volts = job.template.probe.measure(job.values, i);
-      fx.probe = { index: i, x: fx.probe ? fx.probe.x : 0, v: 0, target: volts, reading: `${Notation.number(volts, 0)} V` };
+      const value = job.template.probe.measure(job.values, i);
+      fx.probe = { index: i, x: fx.probe ? fx.probe.x : 0, v: 0, target: value, reading: job.template.probe.reading(value) };
       Sound.play('tick');
       showInput();
       draw();
