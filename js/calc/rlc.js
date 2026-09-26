@@ -25,7 +25,11 @@
     };
   }
 
-  const RlcCircuit = { analyze, resonantFrequency };
+  // リアクタンス：コイル X_L = 2πfL（周波数に比例）、コンデンサ X_C = 1 ÷ (2πfC)（周波数に反比例）
+  const inductiveReactance = (f, L) => 2 * Math.PI * f * L;
+  const capacitiveReactance = (f, C) => 1 / (2 * Math.PI * f * C);
+
+  const RlcCircuit = { analyze, resonantFrequency, inductiveReactance, capacitiveReactance };
   if (typeof module !== 'undefined' && module.exports) module.exports = RlcCircuit;
   else global.RlcCircuit = RlcCircuit;
 })(this);

@@ -135,6 +135,13 @@ test('フェーザ：90° ずれた 100 V どうしの和は 141 V、120° な�
   assert.equal(Phasor.piText(-30), '−π/6');
 });
 
+test('リアクタンス：L = 100/π mH は 50 Hz で 10 Ω、C = 100/π μF は 50 Hz で 100 Ω。周波数2倍で X_L は2倍、X_C は半分', () => {
+  near(RlcCircuit.inductiveReactance(50, 0.1 / Math.PI), 10, 1e-9, 'X_L');
+  near(RlcCircuit.capacitiveReactance(50, 100e-6 / Math.PI), 100, 1e-9, 'X_C');
+  near(RlcCircuit.inductiveReactance(100, 0.1 / Math.PI), 20, 1e-9, 'X_L 2倍');
+  near(RlcCircuit.capacitiveReactance(100, 100e-6 / Math.PI), 50, 1e-9, 'X_C 半分');
+});
+
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };
 
 test('誘導電動機（一次の抵抗を省いた式）：すべりが sm で最大トルク、sm=0.2 の起動トルクは最大の約 38%、二次抵抗 4 倍なら同じトルクのすべりも 4 倍', () => {

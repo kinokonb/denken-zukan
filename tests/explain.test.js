@@ -31,6 +31,7 @@ const lessons = [
   require('../js/topics/internal-resistance.js').TopicInternalResistance,
   require('../js/topics/ac-rms.js').TopicAcRms,
   require('../js/topics/phasor.js').TopicPhasor,
+  require('../js/topics/rlc-elements.js').TopicRlcElements,
   require('../js/topics/rlc.js').TopicRlc,
   require('../js/topics/voltage-drop.js').TopicVoltageDrop,
   require('../js/topics/induction-motor.js').TopicInductionMotor,
