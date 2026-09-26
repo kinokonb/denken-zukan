@@ -125,6 +125,20 @@ test('分圧と分流：4 Ω と 6 Ω の直列に 20 V で 8 V と 12 V、並�
   near(r.parallel.I, r.parallel.I1 + r.parallel.I2, 1e-12, '分流の和');
 });
 
+test('断線：12 V・4 Ω・12 Ω で、並列の R1 が切れると R2 の枝だけ 1 A、直列はどちらが切れても 0 A で切れ目に 12 V', () => {
+  const normal = DcCircuit.seriesAndParallel({ V: 12, R1: 4, R2: 12 });
+  near(normal.parallel.I, 4, 1e-12, 'ふつうの並列');
+  const parallelCut = DcCircuit.seriesAndParallel({ V: 12, R1: 4, R2: 12 }, { parallel: 'R1' });
+  near(parallelCut.parallel.I1, 0, 0, '切れた枝');
+  near(parallelCut.parallel.I, 1, 1e-12, '残りの枝だけ');
+  near(parallelCut.parallel.R, 12, 0, '合成は残りの抵抗');
+  near(parallelCut.series.I, 0.75, 1e-12, '直列はそのまま');
+  const seriesCut = DcCircuit.seriesAndParallel({ V: 12, R1: 4, R2: 12 }, { series: 'R2' });
+  near(seriesCut.series.I, 0, 0, '直列の電流');
+  near(seriesCut.series.V2, 12, 0, '切れ目に電池の電圧');
+  near(seriesCut.series.V1, 0, 0, '切れていない抵抗は 0 V');
+});
+
 test('電力と電力量：100 V・20 Ω で 5 A・500 W、2 時間で 1 kWh = 3,600 kJ', () => {
   const r = DcCircuit.power({ V: 100, R: 20, hours: 2 });
   near(r.I, 5, 1e-12, 'I');

@@ -129,6 +129,23 @@
     return el(parent, 'rect', { x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx: 2, class: `resistor ${cls}` });
   }
 
+  // 計器（電流計なら 'A'）。導線の上に置き、下の導線を紙色の丸で隠す
+  function meter(parent, x, y, letter) {
+    const g = el(parent, 'g', { class: 'meter' });
+    el(g, 'circle', { cx: x, cy: y, r: 9 });
+    el(g, 'text', { x, y, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, letter);
+    return g;
+  }
+
+  // 図の中でタップして答える所（故障探し）。点線の枠で示し、当たりは丸で囲み、はずれは線で消す
+  function tapTarget(parent, { id, x, y, w, h, mark }) {
+    const g = el(parent, 'g', { class: `tap-target ${mark || ''}`, 'data-target': id });
+    el(g, 'rect', { x: x - w / 2, y: y - h / 2, width: w, height: h, rx: 6, class: 'tap-area' });
+    if (mark === 'hit') el(g, 'ellipse', { cx: x, cy: y, rx: w / 2 - 2, ry: h / 2 - 2, class: 'pen' });
+    if (mark === 'miss') el(g, 'line', { x1: x - w / 2 + 6, y1: y + h / 2 - 6, x2: x + w / 2 - 6, y2: y - h / 2 + 6, class: 'pen' });
+    return g;
+  }
+
   // 電流の流れを点で描く（動く層用）。points の道のりに沿って、offset だけ進めた位置に spacing おきに置く
   function flowDots(parent, points, offset, { spacing = 16, cls = 'q-current' } = {}) {
     const segments = [];
@@ -162,5 +179,5 @@
     return g;
   }
 
-  global.Svg = { el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, resistor, flowDots, splitBar };
+  global.Svg = { el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, resistor, meter, tapTarget, flowDots, splitBar };
 })(this);

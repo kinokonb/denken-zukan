@@ -37,15 +37,16 @@
   }
 
   // 止まっている部分を描き、動く部分（motion）はいちばん上の層に time 秒の姿で描く
-  function drawFigure(svg, topic, params, time) {
+  // fault は故障探しのミッション中だけ渡す（レッスンの compute・draw が故障した回路を計算して描く）
+  function drawFigure(svg, topic, params, time, fault = null) {
     const [width, height] = topic.viewBox;
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     Svg.clear(svg);
-    const result = topic.compute(params);
-    topic.draw(svg, params, result);
+    const result = topic.compute(params, fault);
+    topic.draw(svg, params, result, fault);
     const motionLayer = topic.motion ? Svg.el(svg, 'g', { class: 'motion' }) : null;
-    if (motionLayer) topic.motion.draw(motionLayer, params, result, time);
-    return { result, motionLayer };
+    if (motionLayer) topic.motion.draw(motionLayer, params, result, time, fault);
+    return { result, motionLayer, fault };
   }
 
   function prefersReducedMotion() {
@@ -200,10 +201,11 @@
     const readouts = view.querySelector('.readouts');
     const inputs = [...view.querySelectorAll('input[type="range"]')];
     let figure = null;
+    let fault = null; // 故障探しの問題の間だけ、壊れた所と丸つけの状態（持ち主はミッションで、setFault で受け取って図に渡す）
     const motion = createMotion(topic, svg, () => ({ params, figure }));
 
     function update() {
-      figure = drawFigure(svg, topic, params, motion.time());
+      figure = drawFigure(svg, topic, params, motion.time(), fault);
       const { result } = figure;
       caption.innerHTML = topic.caption(params, result);
       readouts.innerHTML = topic.readouts(params, result).map(readoutHtml).join('');
@@ -223,7 +225,9 @@
       params[key] = input.valueAsNumber;
     }
 
-    const missionPlay = topic.missions ? createMissionPlay({ topic, params, inputs, setParam, update: () => update() }) : null;
+    const missionPlay = topic.missions
+      ? createMissionPlay({ topic, params, inputs, setParam, setFault: (value) => { fault = value; }, update: () => update() })
+      : null;
 
     for (const input of inputs) {
       input.addEventListener('input', () => {
@@ -311,8 +315,9 @@
   }
 
   // 1問ずつ：固定するつまみを締め、動かすつまみを始めの値にする → 当たったら丸と理由 → 次へ。5問でタイムと記録
-  function createMissionPlay({ topic, params, inputs, setParam, update }) {
+  function createMissionPlay({ topic, params, inputs, setParam, setFault, update }) {
     const panel = view.querySelector('.mission-panel');
+    const figureSvg = view.querySelector('svg.figure');
     const entry = view.querySelector('.mission-entry');
     // ミッション中の印はレッスンの中（.lab）に付ける。ページを移れば .lab ごと作り直されて消える
     const lab = view.querySelector('.lab');
@@ -322,6 +327,7 @@
     let solved = false;
     let startedAt = 0;
     let timer = null;
+    let fault = null; // 故障探しの問題の間だけ：{ ...型の fault(答え), revealed, marks }
 
     function showRecord() {
       const record = missionRecords()[topic.id];
@@ -367,11 +373,18 @@
       if (free) free.closest('.control').scrollIntoView({ block: 'end', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     }
 
+    function showFault(value) {
+      fault = value;
+      setFault(value);
+    }
+
     function showMission() {
       const mission = set[index];
       const template = topic.missions[mission.templateIndex];
-      for (const [key, value] of Object.entries({ ...Mission.initialParams(topic), ...mission.fixed, [mission.free]: mission.start })) setParam(key, value);
-      lockExcept(mission.free);
+      const start = mission.tap ? {} : { [mission.free]: mission.start };
+      for (const [key, value] of Object.entries({ ...Mission.initialParams(topic), ...mission.fixed, ...start })) setParam(key, value);
+      lockExcept(mission.tap ? null : mission.free);
+      showFault(mission.tap ? { ...template.fault(mission.answer), revealed: false, marks: {} } : null);
       solved = false;
       panel.classList.remove('solved', 'cleared');
       $('.mission-count').textContent = `ミッション ${index + 1} / ${set.length}`;
@@ -383,22 +396,46 @@
     }
 
     function showProgress(template, mission) {
-      const result = topic.compute(params);
+      const result = topic.compute(params, fault);
       $('.mission-sub').innerHTML = `${template.how(mission.values)}　<strong>${template.now(result)}</strong>`;
     }
 
+    // つまみの型：動かすたびに当たりを調べる
     function check() {
-      if (!set || solved) return;
+      if (!set || solved || set[index].tap) return;
       const mission = set[index];
-      const template = topic.missions[mission.templateIndex];
       if (!Mission.isHit(topic, mission, params)) {
-        showProgress(template, mission);
+        showProgress(topic.missions[mission.templateIndex], mission);
         return;
       }
-      solved = true;
       lockExcept(null); // 当たったら、つまみはすべて止める
+      showSolved();
+    }
+
+    // 故障探しの型：タップした所が壊れた所なら丸で囲んで答え合わせ（電流の流れも見せる）。
+    // ちがえば線で消し、「そこが壊れていたら計器はいくつのはずか」を出す
+    function tap(target) {
+      if (!set || solved || !set[index].tap || fault.marks[target]) return;
+      const mission = set[index];
+      const template = topic.missions[mission.templateIndex];
+      if (Mission.isTapHit(mission, target)) {
+        showFault({ ...fault, revealed: true, marks: { ...fault.marks, [target]: 'hit' } });
+        update();
+        showSolved();
+        return;
+      }
+      showFault({ ...fault, marks: { ...fault.marks, [target]: 'miss' } });
+      update();
+      const ifBroken = topic.compute(params, template.fault(target));
+      $('.mission-sub').innerHTML = `<strong>✗</strong>　${template.miss(mission.values, target, ifBroken, topic.compute(params, fault))}`;
+    }
+
+    function showSolved() {
+      const mission = set[index];
+      const template = topic.missions[mission.templateIndex];
+      solved = true;
       panel.classList.add('solved');
-      $('.mission-sub').innerHTML = `<strong>○ ぴったり</strong>　${template.reason(mission.values)}`;
+      $('.mission-sub').innerHTML = `<strong>○ ${mission.tap ? '当たり' : 'ぴったり'}</strong>　${template.reason(mission.values)}`;
       $('.mission-next').textContent = index + 1 < set.length ? '次へ ›' : 'けっか ›';
       $('.mission-next').hidden = false;
       $('.mission-quit').hidden = true;
@@ -412,6 +449,8 @@
 
     function finish() {
       clearInterval(timer);
+      showFault(null);
+      update();
       const seconds = (performance.now() - startedAt) / 1000;
       const record = saveMissionClear(topic.id, seconds);
       set = null;
@@ -431,6 +470,7 @@
 
     function quit() {
       clearInterval(timer);
+      showFault(null);
       set = null;
       panel.hidden = true;
       lab.classList.remove('in-mission');
@@ -443,6 +483,11 @@
     $('.mission-next').addEventListener('click', next);
     $('.mission-again').addEventListener('click', begin);
     $('.mission-quit').addEventListener('click', quit);
+    // 図は動かすたびに描き直すので、タップは図の枠で受ける
+    figureSvg.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-target]');
+      if (target) tap(target.dataset.target);
+    });
     showRecord();
 
     return { check };
@@ -470,7 +515,7 @@
       lastFrame = now;
       const { params, figure } = current();
       Svg.clear(figure.motionLayer);
-      topic.motion.draw(figure.motionLayer, params, figure.result, time);
+      topic.motion.draw(figure.motionLayer, params, figure.result, time, figure.fault);
       frameId = requestAnimationFrame(frame);
     }
 
