@@ -19,6 +19,8 @@ const lessons = [
   require('../js/topics/science-energy.js').TopicScienceEnergy,
   require('../js/topics/math-pythagoras.js').TopicMathPythagoras,
   require('../js/topics/math-trig.js').TopicMathTrig,
+  require('../js/topics/math-vector.js').TopicMathVector,
+  require('../js/topics/math-wave.js').TopicMathWave,
   require('../js/topics/ohm.js').TopicOhm,
   require('../js/topics/series-parallel.js').TopicSeriesParallel,
   require('../js/topics/electric-power.js').TopicElectricPower,
