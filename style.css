@@ -345,3 +345,74 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .stator { fill: none; stroke: var(--ink-3); stroke-width: 1.5; stroke-dasharray: 3 3; }
 .rotor { fill: color-mix(in srgb, var(--q-mech) 16%, var(--paper)); stroke: currentColor; stroke-width: 1.5; }
 .rotor-bar { stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
+
+/* ---- レッスンの形：ことば・やってみよう・確かめ問題・試験では ---- */
+.tries, .quiz, .exam { margin-top: 26px; }
+.tries h2, .quiz h2, .exam h2 { margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--rule); font-size: 17px; }
+.tries { margin: 4px 0 14px; }
+.tries h2 { border-bottom: none; }
+
+.terms { margin: 0 0 14px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; }
+.terms summary {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-height: 44px;
+  padding: 11px 14px;
+  list-style: none;
+  cursor: pointer;
+}
+.terms summary::-webkit-details-marker { display: none; }
+.terms summary::after { content: "＋"; margin-left: auto; color: var(--ink-2); }
+.terms[open] summary::after { content: "−"; }
+.terms-title { flex: none; font-weight: 700; font-size: 15px; }
+.terms-names { min-width: 0; overflow: hidden; font-size: 13.5px; color: var(--ink-2); white-space: nowrap; text-overflow: ellipsis; }
+.terms dl { display: grid; margin: 0; padding: 0 14px 6px; }
+.term { padding: 10px 0; border-top: 1px solid var(--rule); }
+.term dt { font-weight: 700; font-size: 15px; }
+.term dd { margin: 2px 0 0; font-size: 14.5px; line-height: 1.7; color: var(--ink-2); }
+
+.tries ol, .quiz ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.tries li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+}
+.tries li.done { border-color: var(--ink-3); }
+.try-text { margin: 0; font-size: 15px; line-height: 1.6; }
+.try-text::before { content: counter(step) "．"; font-weight: 700; }
+.tries button, .choices button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--ink);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14.5px;
+}
+.tries button:active, .choices button:active:not(:disabled) { background: var(--ink); color: var(--paper); }
+.try-look { grid-column: 1 / -1; margin: 0; font-size: 14.5px; line-height: 1.7; }
+.look-label { display: inline-block; margin-right: 8px; padding: 0 6px; border: 1px solid var(--ink); border-radius: 5px; font-size: 12px; font-weight: 700; }
+
+.question { padding: 12px 14px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; counter-increment: step; }
+.q { margin: 0 0 10px; font-size: 15.5px; line-height: 1.7; }
+.q::before { content: "問" counter(step) "　"; font-weight: 700; }
+.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.choices button { text-align: left; border-color: var(--rule); }
+.choices button:disabled { color: var(--ink-2); opacity: 1; }
+.choices button.correct { border: 2px solid var(--ink); color: var(--ink); font-weight: 700; }
+.choices button.correct::before { content: "✓ "; }
+.choices button.chosen:not(.correct)::before { content: "✗ "; }
+.answer { margin: 10px 0 0; font-size: 14.5px; line-height: 1.7; }
+
+.exam p, .exam li { font-size: 15.5px; line-height: 1.8; }
+.exam p { margin: 0 0 8px; }
+.exam ul { margin: 0; padding-left: 1.2em; }
+.notes .symbols { margin-top: 8px; font-size: 13.5px; line-height: 1.8; color: var(--ink-2); }

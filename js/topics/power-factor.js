@@ -93,6 +93,31 @@
       { name: '皮相電力', symbol: 'S_2', value: Notation.number(r.S2, 0), unit: 'kV·A' },
       { name: `${TARGET} に必要な容量`, symbol: 'Q_c', value: Notation.number(r.QcForTarget, 0), unit: 'kvar' },
     ],
+    terms: [
+      ['有効電力 <var>P</var>', '実際に仕事（熱・動力・光）になる電力。単位 kW。'],
+      ['無効電力 <var>Q</var>', 'コイルやコンデンサと電源の間を行き来するだけで、仕事をしない電力。単位 kvar（キロバール）。'],
+      ['皮相電力 <var>S</var>', '電圧 × 電流で決まる見かけの電力。変圧器や電線の大きさはこれで決まる。単位 kV·A。'],
+      ['力率 cos<var>θ</var>', '皮相電力のうち有効電力の割合（<var>P</var>/<var>S</var>）。1 に近いほど、同じ仕事を少ない電流でできる。'],
+      ['進相コンデンサ', '負荷の遅れの無効電力を打ち消すために、負荷と並列につなぐコンデンサ。'],
+    ],
+    tries: [
+      { text: 'コンデンサをはずす（<var>Q</var><sub>c</sub> = 0）', set: { Qc: 0 }, look: '三角形は <var>P</var> = 400 kW・<var>Q</var> = 300 kvar・<var>S</var> = 500 kV·A（4 : 3 : 5）。力率は 0.8。' },
+      { text: '<var>Q</var><sub>c</sub> を 168 kvar にする', set: { Qc: 168 }, look: '<var>Q</var> が 132 kvar に減り、<var>S</var> は約 421 kV·A、力率は 0.95。<var>P</var> は 400 kW のまま。電流は約 84% に減る。' },
+      { text: '<var>Q</var><sub>c</sub> を 300 kvar にする', set: { Qc: 300 }, look: '<var>Q</var> が 0 になり <var>S</var> = <var>P</var>、力率 1。電流は 80%、線路損失は 64% になる。' },
+      { text: '<var>Q</var><sub>c</sub> を 400 kvar にする（入れすぎ）', set: { Qc: 400 }, look: '三角形が下向きになり、進み力率（約 0.97）。入れすぎると力率はかえって下がる。' },
+    ],
+    quiz: [
+      { q: '有効電力 400 kW、力率 0.8（遅れ）の負荷の無効電力は？', choices: ['240 kvar', '300 kvar', '320 kvar', '500 kvar'], answer: 1, why: '<var>S</var> = <var>P</var>/cos<var>θ</var> = 500 kV·A、sin<var>θ</var> = 0.6 なので <var>Q</var> = <var>S</var> sin<var>θ</var> = 300 kvar（<var>P</var> : <var>Q</var> : <var>S</var> = 4 : 3 : 5）。' },
+      { q: 'コンデンサで力率を改善しても変わらないものは？', choices: ['皮相電力', '無効電力', '有効電力', '電流'], answer: 2, why: '有効電力 <var>P</var> はそのまま。<var>Q</var> と <var>S</var>、それに比例する電流が減る。' },
+      { q: '力率改善で電流が 0.8 倍になると、線路損失は？', choices: ['0.64 倍', '0.8 倍', '0.9 倍', '1.25 倍'], answer: 0, why: '線路損失は <var>I</var>²<var>R</var> なので、0.8² = 0.64 倍。' },
+    ],
+    exam: `<p>法規の計算問題（電気設備管理）の定番。必要なコンデンサ容量や、改善後の電流・損失を求める問題がくり返し出る。</p>
+      <ul>
+        <li>力率0.8 → sin 0.6 → tan 0.75 のように、cos から tan へ直す計算に慣れておく。</li>
+        <li>単位：有効電力 kW、無効電力 kvar、皮相電力 kV·A。</li>
+        <li>有効電力 ${Notation.html('P')} は変わらない。変わるのは ${Notation.html('Q')} と ${Notation.html('S')}（と電流）。</li>
+        <li>入れすぎると進み力率になる。軽負荷の時に進み力率になると電圧が上がるので、負荷に合わせてコンデンサを切り離す。</li>
+      </ul>`,
     conditions: '電圧は一定とする',
     notesHtml: `
       <h2>しくみ</h2>
@@ -105,12 +130,6 @@
         <li>${Notation.html('S')} = √(${Notation.html('P')}² + ${Notation.html('Q')}²)　　cos${Notation.html('θ')} = ${Notation.html('P')} / ${Notation.html('S')}</li>
         <li>線路損失は電流の2乗に比例：改善後 / 改善前 = (cos${Notation.html('θ_1')} / cos${Notation.html('θ_2')})²</li>
       </ul>
-      <h2>試験のツボ</h2>
-      <ul>
-        <li>力率0.8 → sin 0.6 → tan 0.75 のように、cos から tan へ直す計算に慣れておく。</li>
-        <li>単位：有効電力 kW、無効電力 kvar、皮相電力 kV·A。</li>
-        <li>有効電力 ${Notation.html('P')} は変わらない。変わるのは ${Notation.html('Q')} と ${Notation.html('S')}（と電流）。</li>
-        <li>入れすぎると進み力率になる。軽負荷の時に進み力率になると電圧が上がるので、負荷に合わせてコンデンサを切り離す。</li>
-      </ul>`,
+      <p class="symbols">${Notation.html('P')}：有効電力［kW］、${Notation.html('Q')}：無効電力［kvar］、${Notation.html('S')}：皮相電力［kV·A］、${Notation.html('Q_c')}：コンデンサ容量［kvar］、cos${Notation.html('θ_1')}・cos${Notation.html('θ_2')}：改善前・改善後の力率</p>`,
   };
 })(this);

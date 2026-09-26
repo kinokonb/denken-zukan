@@ -99,6 +99,36 @@ async function run(colorScheme) {
         expect(state.captionFits, `${colorScheme} ${id}: ${state.key}=${end} で説明が2行に収まらない`);
       }
     }
+    // やってみよう：押すと図が変わり（NaNなし・図の高さそのまま）、見るところが出る
+    const tries = await page.locator('.tries button[data-try]').count();
+    expect(tries >= 2, `${colorScheme} ${id}: やってみようが2つ未満`);
+    for (let i = 0; i < tries; i++) {
+      await page.locator('.tries button[data-try]').nth(i).click();
+      const state = await page.evaluate((index) => ({
+        nan: /NaN|Infinity/.test(document.querySelector('svg.figure').outerHTML + document.querySelector('.readouts').textContent),
+        look: !document.querySelectorAll('.try-look')[index].hidden,
+        stage: document.querySelector('.stage').getBoundingClientRect().height,
+      }), i);
+      expect(!state.nan, `${colorScheme} ${id}: やってみよう${i + 1}で NaN`);
+      expect(state.look, `${colorScheme} ${id}: やってみよう${i + 1}で見るところが出ない`);
+      expect(Math.abs(state.stage - layout.stage) < 1, `${colorScheme} ${id}: やってみよう${i + 1}で図の高さが変わる`);
+    }
+    // 確かめ問題：選ぶと答えが出て、その問題のボタンは押せなくなる
+    const questions = await page.locator('.quiz .question').count();
+    expect(questions >= 3, `${colorScheme} ${id}: 確かめ問題が3問未満`);
+    for (let i = 0; i < questions; i++) {
+      await page.locator('.quiz .question').nth(i).locator('button').first().click();
+      const answered = await page.evaluate((index) => {
+        const item = document.querySelectorAll('.quiz .question')[index];
+        return !item.querySelector('.answer').hidden && [...item.querySelectorAll('button')].every((b) => b.disabled) && item.querySelectorAll('button.correct').length === 1;
+      }, i);
+      expect(answered, `${colorScheme} ${id}: 確かめ問題${i + 1}の答えが正しく出ない`);
+    }
+    expect((await page.locator('.terms .term').count()) >= 3, `${colorScheme} ${id}: ことばが3つ未満`);
+    await page.locator('.terms summary').click();
+    expect(await page.locator('.terms').evaluate((d) => d.open), `${colorScheme} ${id}: ことばが開かない`);
+    expect((await page.locator('.exam').count()) === 1, `${colorScheme} ${id}: 試験では がない`);
+
     // ボタンを順に押す（最後は初期値に戻す）
     const buttons = await page.locator('.presets button').count();
     for (let i = 0; i < buttons; i++) {

@@ -171,6 +171,31 @@
       { name: '力率', symbol: 'cosφ', value: Notation.number(r.powerFactor, 2), unit: lagOrLead(r.phi) },
       { name: '共振周波数', symbol: 'f_0', value: Notation.number(r.f0, 1), unit: 'Hz' },
     ],
+    terms: [
+      ['交流', '向きと大きさが周期的に入れかわる電気。家庭のコンセントは交流（東日本 50 Hz・西日本 60 Hz）。'],
+      ['周波数 <var>f</var>', '1秒間に波を何回くり返すか。単位は Hz（ヘルツ）。'],
+      ['リアクタンス <var>X</var>', 'コイルやコンデンサが交流をさまたげる度合い。単位は Ω。コイルは <var>X</var><sub>L</sub>、コンデンサは <var>X</var><sub>C</sub>。'],
+      ['インピーダンス <var>Z</var>', '抵抗とリアクタンスを合わせた、交流の流れにくさ。単位は Ω。'],
+      ['位相・フェーザ', '波の山がどれだけずれているかが位相。それを矢印の向きのちがいで表したものがフェーザ。'],
+      ['共振', '<var>X</var><sub>L</sub> と <var>X</var><sub>C</sub> がちょうど打ち消し合い、電流がいちばん大きくなる状態。'],
+    ],
+    tries: [
+      { text: '周波数 <var>f</var> を 50 Hz → 100 Hz にする', set: { f: 100 }, look: 'コイルの <var>X</var><sub>L</sub> は2倍、コンデンサの <var>X</var><sub>C</sub> は半分。<var>V</var><sub>L</sub>（上向き）が伸びて <var>V</var><sub>C</sub>（下向き）が縮み、電流の遅れ <var>φ</var> が 36.8° → 約62° に大きくなる。' },
+      { text: '周波数を 25 Hz にして共振させる', set: { f: 25 }, look: '<var>V</var><sub>L</sub> と <var>V</var><sub>C</sub> が同じ長さで打ち消し合い、<var>V</var> が <var>V</var><sub>R</sub> と重なる。電流は最大（共振曲線の山）、力率は 1。右の波形も電圧と電流の山がそろう。' },
+      { text: '共振のまま、抵抗 <var>R</var> を 40 Ω → 5 Ω にする', set: { f: 25, R: 5 }, look: '電流が 20 A に増え、<var>V</var><sub>L</sub>・<var>V</var><sub>C</sub> は約 400 V と電源の 100 V より大きくなる（矢印の縮尺が変わるので |V| の円が小さく見える）。共振曲線の山も鋭くなる。' },
+    ],
+    quiz: [
+      { q: '<var>R</var> = 3 Ω と <var>X</var><sub>L</sub> = 4 Ω の直列回路のインピーダンス <var>Z</var> は？', choices: ['1 Ω', '5 Ω', '7 Ω', '12 Ω'], answer: 1, why: '<var>Z</var> = √(3² + 4²) = 5 Ω。向きが90°ちがうので、そのまま足して 7 Ω にはならない。' },
+      { q: '周波数を2倍にすると、コイルのリアクタンス <var>X</var><sub>L</sub> は？', choices: ['半分になる', '変わらない', '2倍になる', '4倍になる'], answer: 2, why: '<var>X</var><sub>L</sub> = 2π<var>fL</var> は周波数に比例する。コンデンサの <var>X</var><sub>C</sub> = 1/(2π<var>fC</var>) は反対に半分になる。' },
+      { q: 'RLC直列回路が共振している時、正しいのは？', choices: ['電流がいちばん小さい', 'インピーダンスが R と等しい', '電流が電圧より 90° 遅れる', 'コイルの電圧が 0 になる'], answer: 1, why: '共振では <var>X</var><sub>L</sub> = <var>X</var><sub>C</sub> で打ち消し合い <var>Z</var> = <var>R</var>。<var>Z</var> が最小なので電流は最大で、電流と電圧は同じ向き（同相）。' },
+    ],
+    exam: `<p>交流回路の計算は、過去12回の理論で約40問（論点名から数えた目安）。ほぼ毎回出る。</p>
+      <ul>
+        <li>${Notation.html('X_L')} は周波数に比例、${Notation.html('X_C')} は周波数に反比例する。</li>
+        <li>共振（${Notation.html('X_L')} = ${Notation.html('X_C')}）では ${Notation.html('Z')} = ${Notation.html('R')} で最小、電流は最大、電流と電圧は同相。</li>
+        <li>電圧の大きさはそのまま足せない。${Notation.html('V')} ≠ ${Notation.html('V_R')} + ${Notation.html('V_L')} + ${Notation.html('V_C')}。</li>
+        <li>共振の近くで ${Notation.html('R')} が小さいと、${Notation.html('V_L')}・${Notation.html('V_C')} が電源電圧より大きくなることがある（図で ${Notation.html('R')} を小さくして共振させてみる）。</li>
+      </ul>`,
     conditions: `電源電圧 ${Notation.html('V')} = ${SOURCE_VOLTAGE} V（一定）`,
     notesHtml: `
       <h2>しくみ</h2>
@@ -188,12 +213,6 @@
         <li>cos${Notation.html('φ')} = ${Notation.html('R')} / ${Notation.html('Z')}</li>
         <li>${Notation.html('f_0')} = 1 / (2π√(${Notation.html('LC')}))</li>
       </ul>
-      <h2>試験のツボ</h2>
-      <ul>
-        <li>${Notation.html('X_L')} は周波数に比例、${Notation.html('X_C')} は周波数に反比例する。</li>
-        <li>共振（${Notation.html('X_L')} = ${Notation.html('X_C')}）では ${Notation.html('Z')} = ${Notation.html('R')} で最小、電流は最大、電流と電圧は同相。</li>
-        <li>電圧の大きさはそのまま足せない。${Notation.html('V')} ≠ ${Notation.html('V_R')} + ${Notation.html('V_L')} + ${Notation.html('V_C')}。</li>
-        <li>共振の近くで ${Notation.html('R')} が小さいと、${Notation.html('V_L')}・${Notation.html('V_C')} が電源電圧より大きくなることがある（図で ${Notation.html('R')} を小さくして共振させてみる）。</li>
-      </ul>`,
+      <p class="symbols">${Notation.html('R')}：抵抗［Ω］、${Notation.html('L')}：インダクタンス［H］、${Notation.html('C')}：静電容量［F］、${Notation.html('f')}：周波数［Hz］、${Notation.html('X_L')}・${Notation.html('X_C')}：リアクタンス［Ω］、${Notation.html('Z')}：インピーダンス［Ω］、${Notation.html('φ')}：電流と電圧のずれの角度</p>`,
   };
 })(this);

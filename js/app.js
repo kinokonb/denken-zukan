@@ -119,6 +119,7 @@
         <h1>${topic.title}</h1>
         <p class="lead">${topic.lead}</p>
       </header>
+      ${termsHtml(topic)}
       <section class="lab">
         <div class="stage">
           <figure class="figure-card">
@@ -130,6 +131,7 @@
           </figure>
           <dl class="readouts"></dl>
         </div>
+        ${triesHtml(topic)}
         <div class="controls">
           ${topic.params.map(controlHtml).join('')}
           <div class="presets">
@@ -140,6 +142,8 @@
         </div>
       </section>
       <article class="notes">${topic.notesHtml}</article>
+      ${quizHtml(topic)}
+      ${topic.exam ? `<section class="exam"><h2>試験では</h2>${topic.exam}</section>` : ''}
       <nav class="next">
         <a href="#/topic/${next.topic.id}"><span class="next-label">次のテーマ（${next.subject.name}）</span>${next.topic.title} ›</a>
       </nav>`;
@@ -184,6 +188,34 @@
       const changes = button.hasAttribute('data-reset') ? initialParams(topic) : topic.presets[Number(button.dataset.preset)].apply({ ...params });
       for (const [key, value] of Object.entries(changes)) setParam(key, value);
       update();
+    });
+
+    // やってみよう：初期値から指定の値に変えて、見るところを出す
+    view.querySelector('.tries')?.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-try]');
+      if (!button) return;
+      const step = topic.tries[Number(button.dataset.try)];
+      for (const [key, value] of Object.entries({ ...initialParams(topic), ...step.set })) setParam(key, value);
+      update();
+      const item = button.closest('li');
+      item.classList.add('done');
+      item.querySelector('.try-look').hidden = false;
+    });
+
+    // 確かめ問題：1回選んだら答えと理由を出して、その問題は締める
+    view.querySelector('.quiz')?.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-choice]');
+      if (!button) return;
+      const item = button.closest('.question');
+      const question = topic.quiz[Number(item.dataset.question)];
+      const chosen = Number(button.dataset.choice);
+      const buttons = [...item.querySelectorAll('button[data-choice]')];
+      buttons.forEach((b) => { b.disabled = true; });
+      buttons[question.answer].classList.add('correct');
+      button.classList.add('chosen');
+      const answer = item.querySelector('.answer');
+      answer.innerHTML = `${chosen === question.answer ? '<strong>✓ 正解</strong>' : `<strong>✗ ちがいます</strong>（正解は「${question.choices[question.answer]}」）`}　${question.why}`;
+      answer.hidden = false;
     });
 
     update();
@@ -239,6 +271,47 @@
         else play();
       },
     };
+  }
+
+  // ことばは図を遠ざけないよう、用語名だけを見せてたたんでおく（押すと開く）
+  function termsHtml(topic) {
+    if (!topic.terms) return '';
+    const names = topic.terms.map(([word]) => word.replace(/<[^>]+>/g, '').replace(/\s.*$/, '')).join('・');
+    return `
+      <details class="terms">
+        <summary><span class="terms-title">ことば</span><span class="terms-names">${names}</span></summary>
+        <dl>${topic.terms.map(([word, meaning]) => `<div class="term"><dt>${word}</dt><dd>${meaning}</dd></div>`).join('')}</dl>
+      </details>`;
+  }
+
+  function triesHtml(topic) {
+    if (!topic.tries) return '';
+    return `
+      <section class="tries">
+        <h2>やってみよう</h2>
+        <ol>${topic.tries.map((step, i) => `
+          <li>
+            <p class="try-text">${step.text}</p>
+            <button type="button" data-try="${i}">やってみる</button>
+            <p class="try-look" hidden><span class="look-label">見るところ</span>${step.look}</p>
+          </li>`).join('')}
+        </ol>
+      </section>`;
+  }
+
+  function quizHtml(topic) {
+    if (!topic.quiz) return '';
+    return `
+      <section class="quiz">
+        <h2>確かめ問題</h2>
+        <ol>${topic.quiz.map((question, i) => `
+          <li class="question" data-question="${i}">
+            <p class="q">${question.q}</p>
+            <div class="choices">${question.choices.map((choice, j) => `<button type="button" data-choice="${j}">${choice}</button>`).join('')}</div>
+            <p class="answer" hidden aria-live="polite"></p>
+          </li>`).join('')}
+        </ol>
+      </section>`;
   }
 
   function controlHtml(param) {
