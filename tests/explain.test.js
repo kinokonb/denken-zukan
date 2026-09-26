@@ -33,6 +33,7 @@ const lessons = [
   require('../js/topics/phasor.js').TopicPhasor,
   require('../js/topics/rlc-elements.js').TopicRlcElements,
   require('../js/topics/rlc.js').TopicRlc,
+  require('../js/topics/ac-power.js').TopicAcPower,
   require('../js/topics/voltage-drop.js').TopicVoltageDrop,
   require('../js/topics/induction-motor.js').TopicInductionMotor,
   require('../js/topics/power-factor.js').TopicPowerFactor,

@@ -18,7 +18,13 @@
     return Array.from({ length: n }, (_, i) => Vd + peakFromRms(Va) * Math.sin((2 * Math.PI * i) / n));
   }
 
-  const AcWave = { rmsFromPeak, peakFromRms, averageFromPeak, instantaneous, mixedRms, samples };
+  // 交流の電力：皮相電力 S = VI、有効電力 P = VI cosθ（平均の電力）、無効電力 Q = VI sinθ（遅れ力率 pf = cosθ）
+  function power({ V, I, pf }) {
+    const S = V * I;
+    return { S, P: S * pf, Q: S * Math.sqrt(1 - pf * pf) };
+  }
+
+  const AcWave = { rmsFromPeak, peakFromRms, averageFromPeak, instantaneous, mixedRms, samples, power };
   if (typeof module !== 'undefined' && module.exports) module.exports = AcWave;
   else global.AcWave = AcWave;
 })(this);

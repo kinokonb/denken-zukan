@@ -142,6 +142,20 @@ test('リアクタンス：L = 100/π mH は 50 Hz で 10 Ω、C = 100/π μF �
   near(RlcCircuit.capacitiveReactance(100, 100e-6 / Math.PI), 50, 1e-9, 'X_C 半分');
 });
 
+test('交流の電力：100 V・5 A・力率 0.8 で P 400 W・Q 300 var・S 500 VA。瞬時電力 v × i の平均が P になる', () => {
+  const r = AcWave.power({ V: 100, I: 5, pf: 0.8 });
+  near(r.P, 400, 1e-9, 'P');
+  near(r.Q, 300, 1e-9, 'Q');
+  near(r.S, 500, 1e-9, 'S');
+  const theta = Math.acos(0.8);
+  let sum = 0;
+  for (let i = 0; i < 360; i++) {
+    const a = (2 * Math.PI * i) / 360;
+    sum += 100 * Math.SQRT2 * Math.sin(a) * 5 * Math.SQRT2 * Math.sin(a - theta);
+  }
+  near(sum / 360, 400, 1e-9, '瞬時電力の平均');
+});
+
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };
 
 test('誘導電動機（一次の抵抗を省いた式）：すべりが sm で最大トルク、sm=0.2 の起動トルクは最大の約 38%、二次抵抗 4 倍なら同じトルクのすべりも 4 倍', () => {

@@ -18,7 +18,7 @@
       id: 'riron', mark: '理', name: '理論', summary: '電気・磁気・回路の基本。ほかの3科目の土台',
       units: [
         { name: '直流回路', topics: [TopicOhm, TopicSeriesParallel, TopicElectricPower, TopicKirchhoff, TopicBridge, TopicInternalResistance] },
-        { name: '交流回路', topics: [TopicAcRms, TopicPhasor, TopicRlcElements, TopicRlc] },
+        { name: '交流回路', topics: [TopicAcRms, TopicPhasor, TopicRlcElements, TopicRlc, TopicAcPower] },
       ],
     },
     { id: 'denryoku', mark: '電', name: '電力', summary: '発電・変電・送電・配電', units: [{ name: '送電・配電', topics: [TopicVoltageDrop] }] },
