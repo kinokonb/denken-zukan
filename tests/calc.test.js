@@ -8,6 +8,7 @@ const PowerFactor = require('../js/calc/power-factor.js');
 const DcCircuit = require('../js/calc/dc-circuit.js');
 const AcWave = require('../js/calc/ac-wave.js');
 const Phasor = require('../js/calc/phasor.js');
+const Capacitor = require('../js/calc/capacitor.js');
 
 const near = (actual, expected, tolerance, label) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} は ${expected}±${tolerance} ではない`);
@@ -154,6 +155,19 @@ test('交流の電力：100 V・5 A・力率 0.8 で P 400 W・Q 300 var・S 500
     sum += 100 * Math.SQRT2 * Math.sin(a) * 5 * Math.SQRT2 * Math.sin(a - theta);
   }
   near(sum / 360, 400, 1e-9, '瞬時電力の平均');
+});
+
+test('平行平板コンデンサ：100 cm²・1 mm で約 88.5 pF。間隔2倍で、つないだままなら Q 半分、外したなら V 2倍で E は同じ', () => {
+  const C0 = Capacitor.capacitance({ S: 100e-4, d: 1e-3 });
+  near(C0 * 1e12, 88.54, 0.01, 'C0');
+  const C2 = Capacitor.capacitance({ S: 100e-4, d: 2e-3 });
+  const on = Capacitor.state({ C: C2, C0, V0: 100, connected: true, d: 2e-3 });
+  near(on.Q / (C0 * 100), 0.5, 1e-12, 'つないだまま Q');
+  near(on.E, 100 / 2e-3, 1e-6, 'つないだまま E（半分）');
+  const off = Capacitor.state({ C: C2, C0, V0: 100, connected: false, d: 2e-3 });
+  near(off.V, 200, 1e-9, '外した V');
+  near(off.E, 100 / 1e-3, 1e-6, '外した E（同じ）');
+  near(off.W / Capacitor.state({ C: C0, C0, V0: 100, connected: false, d: 1e-3 }).W, 2, 1e-12, '外した W は2倍');
 });
 
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };

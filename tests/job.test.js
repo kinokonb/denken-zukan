@@ -12,6 +12,7 @@ globalThis.PowerFactor = require('../js/calc/power-factor.js');
 globalThis.AcWave = require('../js/calc/ac-wave.js');
 globalThis.Phasor = require('../js/calc/phasor.js');
 globalThis.RlcCircuit = require('../js/calc/rlc.js');
+globalThis.Capacitor = require('../js/calc/capacitor.js');
 globalThis.PlayKit = require('../js/plays/kit.js');
 const Job = require('../js/job.js');
 const lessons = [
@@ -25,6 +26,7 @@ const lessons = [
   ['位相とフェーザ', require('../js/plays/phasor.js')],
   ['R・L・C それぞれの交流', require('../js/plays/rlc-elements.js')],
   ['交流の電力と力率', require('../js/plays/ac-power.js')],
+  ['平行平板コンデンサ', require('../js/plays/plate-capacitor.js')],
   ['RLC直列回路', require('../js/plays/rlc.js')],
   ['送電線の電圧降下', require('../js/plays/voltage-drop.js')],
   ['誘導電動機', require('../js/plays/induction-motor.js')],
