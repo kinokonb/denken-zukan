@@ -15,6 +15,7 @@ const lessons = [
   require('../js/topics/math-proportion.js').TopicMathProportion,
   require('../js/topics/math-prefix.js').TopicMathPrefix,
   require('../js/topics/math-square.js').TopicMathSquare,
+  require('../js/topics/science-charge.js').TopicScienceCharge,
   require('../js/topics/ohm.js').TopicOhm,
   require('../js/topics/series-parallel.js').TopicSeriesParallel,
   require('../js/topics/electric-power.js').TopicElectricPower,
