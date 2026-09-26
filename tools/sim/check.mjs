@@ -324,7 +324,13 @@ async function solveJobs(page, id, label, count, expectBasicsButton) {
     return { kind: job.template.kind, answer: job.template.answer(job.values), input: job.input, count: job.template.count, parts: job.template.probe?.parts, needs: job.template.needs };
   });
   const setInput = async (job, value) => {
-    if (job.kind === 'dial') await page.locator('.job-control input').fill(String(value));
+    if (job.kind === 'dial') {
+      // 答えは計算の誤差を含むことがある（3.5000000000000004 など）ので、人がつまみで置けるいちばん近い目盛りに直して入れる
+      const input = page.locator('.job-control input');
+      const [min, step] = await input.evaluate((el) => [Number(el.min), el.step]);
+      const digits = step.includes('.') ? step.split('.')[1].length : 0;
+      await input.fill(String(Number((min + Math.round((value - min) / Number(step)) * Number(step)).toFixed(digits))));
+    }
     else if (job.kind === 'count') {
       const now = (await current()).input;
       const button = page.locator(`.job-control [data-step="${value > now ? 1 : -1}"]`);
