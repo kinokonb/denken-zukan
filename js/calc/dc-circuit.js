@@ -53,9 +53,17 @@
     return { I: 0, voltages: Array.from({ length: n }, (_, i) => (i === broken ? V : 0)) };
   }
 
+  // 2つの電池の回路（キルヒホッフの法則）：電池1 − R1 − 点A − R2 − 電池2、点A から R3 を通って下の導線（0 V）へ。
+  // 電流の向きは、I1・I2 が点A へ流れこむ向き、I3 が R3 を下へ流れる向きを正とする（負なら反対向き）。
+  // 点A の電位 VA は、点A に流れこむ電流の和 = 出る電流（第1法則）から求める
+  function twoSources({ E1, E2, R1, R2, R3 }) {
+    const VA = (E1 / R1 + E2 / R2) / (1 / R1 + 1 / R2 + 1 / R3);
+    return { VA, I1: (E1 - VA) / R1, I2: (E2 - VA) / R2, I3: VA / R3 };
+  }
+
   const DcCircuit = {
     ohm, seriesResistance, parallelResistance, seriesAndParallel, power,
-    lampWithSeriesResistor, parallelLamps, seriesLampsWithBreak,
+    lampWithSeriesResistor, parallelLamps, seriesLampsWithBreak, twoSources,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = DcCircuit;
   else global.DcCircuit = DcCircuit;

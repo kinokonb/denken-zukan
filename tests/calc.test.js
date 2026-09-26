@@ -70,6 +70,18 @@ test('電圧降下：家が並ぶ配電線。区間の電流は先の家の合�
   r.voltages.forEach((V, k) => near(V, [101, 98, 96, 95][k], 1e-9, `家${k + 1}`));
 });
 
+test('キルヒホッフ：E1=20V・E2=10V・R1=4Ω・R2=2Ω・R3=2Ω で I1=3A・I2=1A・I3=4A、E2 を 0 にすると I2 は -2A（反対向き）', () => {
+  const r = DcCircuit.twoSources({ E1: 20, E2: 10, R1: 4, R2: 2, R3: 2 });
+  near(r.I1, 3, 1e-12, 'I1');
+  near(r.I2, 1, 1e-12, 'I2');
+  near(r.I3, 4, 1e-12, 'I3');
+  near(r.I1 + r.I2, r.I3, 1e-12, '第1法則');
+  near(4 * r.I1 + 2 * r.I3, 20, 1e-12, '第2法則（閉回路1）');
+  const zero = DcCircuit.twoSources({ E1: 20, E2: 0, R1: 4, R2: 2, R3: 2 });
+  near(zero.I2, -2, 1e-12, 'I2');
+  near(zero.I3, 2, 1e-12, 'I3');
+});
+
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };
 
 test('誘導電動機（一次の抵抗を省いた式）：すべりが sm で最大トルク、sm=0.2 の起動トルクは最大の約 38%、二次抵抗 4 倍なら同じトルクのすべりも 4 倍', () => {
