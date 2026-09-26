@@ -17,6 +17,7 @@ const lessons = [
   ['電力と電力量', require('../js/plays/electric-power.js')],
   ['キルヒホッフの法則', require('../js/plays/kirchhoff.js')],
   ['ブリッジ回路', require('../js/plays/bridge.js')],
+  ['電池の内部抵抗', require('../js/plays/internal-resistance.js')],
   ['RLC直列回路', require('../js/plays/rlc.js')],
   ['送電線の電圧降下', require('../js/plays/voltage-drop.js')],
   ['誘導電動機', require('../js/plays/induction-motor.js')],

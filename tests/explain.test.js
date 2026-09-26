@@ -26,6 +26,7 @@ const lessons = [
   require('../js/topics/electric-power.js').TopicElectricPower,
   require('../js/topics/kirchhoff.js').TopicKirchhoff,
   require('../js/topics/bridge.js').TopicBridge,
+  require('../js/topics/internal-resistance.js').TopicInternalResistance,
   require('../js/topics/rlc.js').TopicRlc,
   require('../js/topics/voltage-drop.js').TopicVoltageDrop,
   require('../js/topics/induction-motor.js').TopicInductionMotor,
