@@ -46,7 +46,8 @@ if (publishedUrl) {
     expect(response.ok && published.equals(fs.readFileSync(path.join(root, asset))), `公開版の ${asset} がrepoと違う（${response.status}）`);
   }
 }
-const browser = await chromium.launch();
+// 音はマシンの音声デバイスへ出さない（負荷が高い時にデバイスのエラーがコンソールに出て、アプリと関係なく NG になるため）
+const browser = await chromium.launch({ args: ['--disable-audio-output'] });
 
 async function run(colorScheme) {
   const context = await browser.newContext({ viewport: { width: 430, height: 932 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, colorScheme });
