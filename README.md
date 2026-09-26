@@ -28,8 +28,10 @@
 | オフライン保存 | [sw.js](sw.js)（ファイルを足したら `ASSETS` へ。[tests/offline.test.js](tests/offline.test.js) が照合） |
 | 画面に出す版 | [js/version.js](js/version.js) |
 | アイコン | [icons/icon.svg](icons/icon.svg) を直して `node tools/make-icons.mjs` |
+| 資料（過去問題集）を読む | [tools/reference.swift](tools/reference.swift) |
 
 ### テーマの足し方
+0. 資料（過去問題集、[AGENTS.md](AGENTS.md) の「資料」）でそのテーマの過去問を探し（`swift tools/reference.swift find <科目> <語>`）、問われ方・記号・単位・典型値を合わせる。本文・図・問題は写さない。
 1. `js/calc/` に計算を置き、`tests/calc.test.js` に教科書の値で確かめるテストを足す。
 2. `js/topics/` にテーマを置く（`params`・`presets`・`compute`・`draw`・`caption`・`readouts`・`conditions`・`notesHtml`）。
 3. `index.html` に `<script>`、`js/app.js` の `SUBJECTS` に登録、`sw.js` の `ASSETS` に追加。
