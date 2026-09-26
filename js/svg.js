@@ -218,8 +218,8 @@
   }
 
   // 針の計器（電流計 'A'、電圧計 'V'）。value を 0〜max の目盛りで指す（振り切れは少しだけ越えて止まる）。
-  // mark は目盛りに付ける印（ヒューズの定格など）で、計器と同じ量の色で描く
-  function gauge(parent, x, y, { value = 0, max, letter, cls = '', mark = null } = {}) {
+  // mark は目盛りに付ける印（ヒューズの定格など）で、計器と同じ量の色で描く。ghost は予想の針（点線）
+  function gauge(parent, x, y, { value = 0, max, letter, cls = '', mark = null, ghost = null } = {}) {
     const g = el(parent, 'g', { class: `gauge ${cls}` });
     const from = Math.PI * 1.15; // 左下
     const to = -Math.PI * 0.15; // 右下
@@ -237,6 +237,10 @@
       const [x1, y1] = point(angleOf(mark), 21);
       const [x2, y2] = point(angleOf(mark), 12);
       el(g, 'line', { x1, y1, x2, y2, class: 'gauge-mark' });
+    }
+    if (ghost !== null) {
+      const [gx, gy] = point(angleOf(ghost), 17);
+      el(g, 'line', { x1: x, y1: y, x2: gx, y2: gy, class: 'gauge-ghost' });
     }
     const [nx, ny] = point(angleOf(value), 17);
     el(g, 'line', { x1: x, y1: y, x2: nx, y2: ny, class: 'gauge-needle' });

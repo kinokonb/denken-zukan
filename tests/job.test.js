@@ -51,6 +51,27 @@ for (const [title, play] of lessons) {
     checkTemplates(play.jobs, 'ミッションの型');
   });
 
+  test(`${title}：準備のどの問題も、成功する入力はちょうど1つ（答え）で、使う知識と文に計算できない値が出ない`, () => {
+    assert.ok(play.basics.length >= 1, '準備がある');
+    for (const template of play.basics) assert.ok(template.title && template.know, `準備「${template.title}」に使う知識がない`);
+    checkTemplates(play.basics, '準備');
+  });
+
+  test(`${title}：準備は指定の段から最後まで決まった順に出て、始めの入力は成功しない。ミッションの「準備から」の段がある`, () => {
+    for (let start = 0; start < play.basics.length; start++) {
+      for (let seed = 1; seed <= 20; seed++) {
+        const ladder = Job.buildLadder(play.basics, start, seeded(seed));
+        assert.deepEqual(ladder.map((step) => step.templateIndex), play.basics.map((_, i) => i).slice(start));
+        for (const step of ladder) {
+          assert.equal(play.basics[step.templateIndex].run(step.values, step.start).ok, false, `段${step.templateIndex + 1} seed ${seed}：始めから成功する`);
+        }
+      }
+    }
+    for (const template of play.jobs) {
+      assert.ok(Number.isInteger(template.needs) && template.needs >= 0 && template.needs < play.basics.length, `ミッションの型 ${template.kind} の needs が準備の段にない`);
+    }
+  });
+
   test(`${title}：ミッションの1セットは5問、始めの入力は成功せず、同じ型が3問続かない`, () => {
     for (let seed = 1; seed <= 50; seed++) {
       const set = Job.buildSet(play.jobs, seeded(seed));

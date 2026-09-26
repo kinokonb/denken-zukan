@@ -1,5 +1,6 @@
 // ミッション（現場の依頼）：依頼を読む → 値や個数を決める（計器は結果が出るまで見えない）→ スイッチを入れる → 目の前で結果が起きる。
-// 5問で1セット。ここは出題の組み立てと、決められる入力の一覧だけを持つ（DOMなし）。画面と演出は js/job-play.js。
+// 5問で1セット。準備（basics：ミッションの前提の知識を1つずつ）は決まった順に出す。
+// ここは出題の組み立てと、決められる入力の一覧だけを持つ（DOMなし）。画面と演出は js/job-play.js。
 // レッスンごとの遊び（js/plays/<レッスンid>.js）の jobs は「型」の並び。型の kind で決め方が変わる：
 // - dial：つまみで値を決める（dial: { name, symbol, unit, min, max, step }）
 // - count：個数を決める（count: { min, max }）
@@ -43,7 +44,15 @@
     }));
   }
 
-  const Job = { SET_SIZE, inputs, buildSet };
+  // 準備の組み立て：start 番目から最後まで、決まった順に1問ずつ（数値の組はそれぞれの候補から1つ選ぶ）
+  function buildLadder(templates, start = 0, rng = Math.random) {
+    return templates.slice(start).map((template, i) => {
+      const values = template.cases[Math.floor(rng() * template.cases.length)];
+      return { templateIndex: start + i, values, start: startInput(template, values, rng) };
+    });
+  }
+
+  const Job = { SET_SIZE, inputs, buildSet, buildLadder };
   if (typeof module !== 'undefined' && module.exports) module.exports = Job;
   else global.Job = Job;
 })(this);

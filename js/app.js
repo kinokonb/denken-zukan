@@ -178,6 +178,7 @@
         </div>
         ${topic.missions || play ? `
           <section class="mission-entry">
+            ${play?.basics ? `<button type="button" class="basics-start">準備 ${play.basics.length}問（前提の知識）</button>` : ''}
             <button type="button" class="mission-start">ミッション ${(play ? Job : Mission).SET_SIZE}問に挑戦</button>
             <span class="mission-record"></span>
           </section>` : ''}

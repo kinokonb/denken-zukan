@@ -3,6 +3,7 @@
 // 壊れる時は少し遅れて、もう一度止まってから火花と煙が出て図が揺れ、電球が消えて針が 0 に戻る。
 // 視差効果を減らす設定では、止まり・揺れ・火花・煙を省き、針と電球はすぐに結果の位置へ行く。
 // 出題は js/job.js、結果の計算と現場の図はレッスンごとの遊び（js/plays/<レッスンid>.js）の型（run・draw）が持つ。
+// 準備（basics）はミッションと同じ画面で、決まった順に1問ずつ。問いの上に「使う知識」を見せ、ミッションで失敗したらその型の前提の段から始められる。
 (function (global) {
   'use strict';
 
@@ -37,6 +38,7 @@
           </span>
         </div>
         <p class="job-request"></p>
+        <p class="job-know" hidden></p>
         <div class="job-body" aria-live="polite">
           <div class="job-control"></div>
           <p class="job-result" hidden></p>
@@ -44,10 +46,16 @@
         <div class="job-go">
           <button type="button" class="job-run"></button>
           <button type="button" class="job-retry" hidden>やり直す</button>
+          <button type="button" class="job-basics" hidden></button>
           <button type="button" class="job-next" hidden></button>
           <button type="button" class="job-again" hidden>もう1セット</button>
         </div>
       </div>`;
+  }
+
+  // 準備の段の番号（①②③…）
+  function stepMark(index) {
+    return String.fromCharCode(0x2460 + index);
   }
 
   function prefersReducedMotion() {
@@ -65,6 +73,7 @@
     Svg.glowDefs(scene);
     const world = Svg.el(scene, 'g');
 
+    let mode = 'mission'; // 'mission'（ミッション）か 'basics'（準備）
     let set = null;
     let index = 0;
     let startedAt = 0;
@@ -263,9 +272,15 @@
 
     // ---- 欄 ----
 
+    const recordId = () => (mode === 'basics' ? `${topic.id}:basics` : topic.id);
+    const templates = () => (mode === 'basics' ? play.basics : play.jobs);
+
     function showRecord() {
-      const record = records.load()[topic.id];
-      entry.querySelector('.mission-record').textContent = record ? `クリア ${record.clears}回・ベスト ${formatSeconds(record.best)}` : 'まだクリアなし';
+      const all = records.load();
+      const mission = all[topic.id];
+      const basics = all[`${topic.id}:basics`];
+      const missionText = mission ? `ミッション クリア ${mission.clears}回・ベスト ${formatSeconds(mission.best)}` : 'ミッション まだクリアなし';
+      entry.querySelector('.mission-record').textContent = play.basics ? `準備 ${basics ? `クリア ${basics.clears}回` : 'まだ'}　${missionText}` : missionText;
     }
 
     function showSoundButton() {
@@ -331,19 +346,24 @@
       $('.job-run').hidden = false;
       $('.job-run').textContent = job.template.action || 'スイッチを入れる';
       $('.job-retry').hidden = true;
+      $('.job-basics').hidden = true;
       $('.job-next').hidden = true;
       showInput();
     }
 
     function showJob() {
       const item = set[index];
-      const template = play.jobs[item.templateIndex];
+      const template = templates()[item.templateIndex];
       job = { template, values: item.values, input: item.start, attempts: 0, phase: 'decide', result: null };
       panel.currentJob = job; // 検査（tools/sim/check.mjs）が今の問題を知るため
       panel.dataset.kind = template.kind;
       fx = freshFx();
-      $('.job-count').textContent = `ミッション ${index + 1} / ${set.length}`;
+      $('.job-count').textContent = mode === 'basics'
+        ? `準備 ${stepMark(item.templateIndex)} / ${play.basics.length}`
+        : `ミッション ${index + 1} / ${set.length}`;
       $('.job-request').innerHTML = template.request(item.values);
+      $('.job-know').hidden = !template.know;
+      $('.job-know').innerHTML = template.know ? `<strong>${template.title}</strong>　${template.know}` : '';
       renderControl();
       showDeciding();
       draw();
@@ -376,6 +396,10 @@
       $('.job-result').hidden = false;
       $('.job-run').hidden = true;
       $('.job-retry').hidden = result.ok;
+      // ミッションで失敗したら、その型の前提の段から準備を始められる
+      const needs = mode === 'mission' && !result.ok && play.basics ? job.template.needs : undefined;
+      $('.job-basics').hidden = needs === undefined;
+      if (needs !== undefined) $('.job-basics').textContent = `準備 ${stepMark(needs)}から`;
       $('.job-next').hidden = !result.ok;
       $('.job-next').textContent = index + 1 < set.length ? '次へ ›' : 'けっか ›';
       if (result.ok) {
@@ -404,27 +428,33 @@
     function finish() {
       clearInterval(timer);
       const seconds = (performance.now() - startedAt) / 1000;
-      const record = records.saveClear(topic.id, seconds);
+      const record = records.saveClear(recordId(), seconds);
       set = null;
       panel.classList.remove('solved', 'failed');
       panel.classList.add('cleared');
       $('.job-count').textContent = 'クリア';
       $('.job-time').textContent = formatSeconds(seconds);
       $('.job-combo').textContent = '';
-      $('.job-request').textContent = `${Job.SET_SIZE}問クリア！ ${formatSeconds(seconds)}　1発 ${firstTries} / ${Job.SET_SIZE}`;
+      const count = index;
+      $('.job-request').textContent = `${mode === 'basics' ? '準備' : ''}${count}問クリア！ ${formatSeconds(seconds)}　1発 ${firstTries} / ${count}`;
+      $('.job-know').hidden = true;
       $('.job-result').textContent = record.isBest ? `ベスト更新（クリア ${record.clears}回目）` : `ベスト ${formatSeconds(record.best)}（クリア ${record.clears}回目）`;
       $('.job-result').hidden = false;
       $('.job-control').hidden = true;
       $('.job-next').hidden = true;
       $('.job-again').hidden = false;
+      $('.job-again').textContent = mode === 'basics' ? 'ミッションへ ›' : 'もう1セット';
       $('.job-quit').textContent = '閉じる';
       Sound.play('combo');
       showRecord();
     }
 
-    function begin() {
-      set = Job.buildSet(play.jobs);
+    // mode：'mission' か 'basics'。準備は start 番目の段から最後まで
+    function begin(nextMode = 'mission', start = 0) {
+      mode = nextMode;
+      set = mode === 'basics' ? Job.buildLadder(play.basics, start) : Job.buildSet(play.jobs);
       index = 0;
+      panel.classList.toggle('basics', mode === 'basics');
       combo = 0;
       firstTries = 0;
       startedAt = performance.now();
@@ -489,14 +519,16 @@
     $('.job-run').addEventListener('click', run);
     $('.job-retry').addEventListener('click', retry);
     $('.job-next').addEventListener('click', next);
-    $('.job-again').addEventListener('click', begin);
+    $('.job-again').addEventListener('click', () => begin('mission'));
+    $('.job-basics').addEventListener('click', () => begin('basics', job.template.needs));
     $('.job-quit').addEventListener('click', quit);
     $('.job-sound').addEventListener('click', () => {
       Sound.setEnabled(!Sound.enabled());
       showSoundButton();
       Sound.play('tick');
     });
-    entry.querySelector('.mission-start').addEventListener('click', begin);
+    entry.querySelector('.mission-start').addEventListener('click', () => begin('mission'));
+    entry.querySelector('.basics-start')?.addEventListener('click', () => begin('basics'));
     showRecord();
   }
 
