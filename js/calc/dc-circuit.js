@@ -77,9 +77,17 @@
     return { openC, openD, Ig, VC, VD, I1, I2: VC / R2, I3, I4: VD / R4, I: I1 + I3 };
   }
 
+  // 内部抵抗 r のある電池（起電力 E）に負荷 R をつなぐ。電流 I = E ÷ (R + r)、端子電圧 V = E − rI。
+  // 負荷の電力 P は R = r の時に最大（E² ÷ 4r）
+  function batteryLoad({ E, r, R }) {
+    const I = E / (R + r);
+    const V = E - r * I;
+    return { I, V, drop: r * I, P: V * I, loss: r * I * I, Pmax: (E * E) / (4 * r), shortCircuit: E / r };
+  }
+
   const DcCircuit = {
     ohm, seriesResistance, parallelResistance, seriesAndParallel, power,
-    lampWithSeriesResistor, parallelLamps, seriesLampsWithBreak, twoSources, bridge,
+    lampWithSeriesResistor, parallelLamps, seriesLampsWithBreak, twoSources, bridge, batteryLoad,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = DcCircuit;
   else global.DcCircuit = DcCircuit;

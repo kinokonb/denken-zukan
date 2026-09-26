@@ -95,6 +95,18 @@ test('ブリッジ：R1R4 = R2R3（10×30 = 20×15）なら検流計の電流は
   near(u.I3 + u.Ig, u.I4, 1e-12, '点D');
 });
 
+test('内部抵抗：E=6V・r=1Ω・R=5Ω で I=1A・V=5V・P=5W、R=r=1Ω で最大の 9W（端子電圧は E の半分）', () => {
+  const r = DcCircuit.batteryLoad({ E: 6, r: 1, R: 5 });
+  near(r.I, 1, 1e-12, 'I');
+  near(r.V, 5, 1e-12, 'V');
+  near(r.P, 5, 1e-12, 'P');
+  near(r.Pmax, 9, 1e-12, 'Pmax');
+  const best = DcCircuit.batteryLoad({ E: 6, r: 1, R: 1 });
+  near(best.P, 9, 1e-12, 'R = r の電力');
+  near(best.V, 3, 1e-12, 'R = r の端子電圧');
+  near(r.shortCircuit, 6, 1e-12, '短絡電流');
+});
+
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };
 
 test('誘導電動機（一次の抵抗を省いた式）：すべりが sm で最大トルク、sm=0.2 の起動トルクは最大の約 38%、二次抵抗 4 倍なら同じトルクのすべりも 4 倍', () => {
