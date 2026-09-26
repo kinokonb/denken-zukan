@@ -192,6 +192,15 @@
     return g;
   }
 
+  // 電熱線（縦の抵抗）。level は決まった熱さを 1 とした熱さで、電球と同じ光のにじみになる
+  function heater(parent, x, y, { level = 0 } = {}) {
+    const g = el(parent, 'g', { class: 'heater' });
+    const heat = Math.min(level, 1.5);
+    if (heat > 0) el(g, 'circle', { cx: x, cy: y, r: 14 + 18 * heat, fill: 'url(#lamp-glow)', opacity: Math.min(1, 0.2 + 0.8 * heat) });
+    resistor(g, x, y, { vertical: true });
+    return g;
+  }
+
   // ヒューズ（横の導線の上の細長い箱と、中の細い線）。blown は飛んだヒューズ（中の線が切れて焦げる）
   function fuse(parent, x, y, { blown = false } = {}) {
     const g = el(parent, 'g', { class: `fuse${blown ? ' blown' : ''}` });
@@ -264,6 +273,6 @@
 
   global.Svg = {
     el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, resistor, flowDots, splitBar,
-    glowDefs, lamp, fuse, knifeSwitch, gauge, leads,
+    glowDefs, lamp, heater, fuse, knifeSwitch, gauge, leads,
   };
 })(this);

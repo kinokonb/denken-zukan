@@ -6,7 +6,7 @@
 (function (global) {
   'use strict';
 
-  const num = (value) => String(Number(value.toFixed(2)));
+  const { num, near, predicted } = PlayKit;
   const amperes = (value) => Notation.number(value, 2);
   const JOB_NOTE_Y = 262;
 
@@ -48,14 +48,12 @@
   }
 
   function drawAmmeter(g, x, y, look, max, mark = null, ghost = null) {
-    Svg.gauge(g, x, y, { value: look.meter, max, letter: 'A', cls: 'q-current', mark, ghost });
-    Svg.note(g, x, y + 40, look.reading ?? '？ A', { cls: look.reading ? 'value q-current' : 'faint', anchor: 'middle' });
+    PlayKit.meter(g, x, y, look, { max, letter: 'A', cls: 'q-current', mark, ghost });
   }
 
   // 電圧計（テスター）。読みは計器の下
   function drawVoltmeter(g, x, y, look, max, ghost = null, readingY = y + 40) {
-    Svg.gauge(g, x, y, { value: look.meter, max, letter: 'V', cls: 'q-voltage', ghost });
-    Svg.note(g, x, readingY, look.reading ?? '？ V', { cls: look.reading ? 'value q-voltage' : 'faint', anchor: 'middle' });
+    PlayKit.meter(g, x, y, look, { max, letter: 'V', cls: 'q-voltage', ghost, readingY });
   }
 
   function drawLampJob(g, { V, Vr, Ir }, R, look) {
@@ -127,18 +125,11 @@
 
   // ---- 準備（前提の知識）：計器の針を予想して置く（または値を決める）→ スイッチ → 本物とくらべる ----
 
-  const near = (a, b) => Math.abs(a - b) < 1e-9;
   const LOOP = { left: 40, right: 300, top: 64, bottom: 196, mid: 130 };
 
   function drawLoop(g) {
     const { left, right, top, bottom, mid } = LOOP;
     Svg.wire(g, [[left, mid], [left, top], [right, top], [right, bottom], [left, bottom], [left, mid]]);
-  }
-
-  // 予想の針とくらべる問いの結果（当たりは同じ値のときだけ）
-  function predicted(input, truth, unit, why) {
-    if (near(input, truth)) return { ok: true, reason: `ぴったり！ ${why}` };
-    return { ok: false, reason: `本物は ${num(truth)} ${unit}（予想 ${num(input)} ${unit}）。${why}` };
   }
 
   // ① オームの法則：抵抗1本の電流を予想する

@@ -5,9 +5,8 @@
 (function (global) {
   'use strict';
 
-  const num = (value) => String(Number(value.toFixed(2)));
+  const { num, near, predicted } = PlayKit;
   const amperes = (value) => Notation.number(value, 2);
-  const near = (a, b) => Math.abs(a - b) < 1e-9;
   const CELL_V = 1.5; // 乾電池1個の電圧
   const TESTER_V = 3; // テスターが測る物にかける電圧
   const NOTE_Y = 262;
@@ -30,15 +29,7 @@
   }
 
   function drawAmmeter(g, x, y, look, max, mark = null, ghost = null) {
-    Svg.gauge(g, x, y, { value: look.meter, max, letter: 'A', cls: 'q-current', mark, ghost });
-    Svg.note(g, x, y + 40, look.reading ?? '？ A', { cls: look.reading ? 'value q-current' : 'faint', anchor: 'middle' });
-  }
-
-  // 電熱線（縦の抵抗）。level はヒューズの定格の電流を流した時を 1 とした熱さで、光のにじみになる
-  function drawHeater(g, x, y, level) {
-    const heat = Math.min(level, 1.5);
-    if (heat > 0) Svg.el(g, 'circle', { cx: x, cy: y, r: 14 + 18 * heat, fill: 'url(#lamp-glow)', opacity: Math.min(1, 0.2 + 0.8 * heat) });
-    Svg.resistor(g, x, y, { vertical: true });
+    PlayKit.meter(g, x, y, look, { max, letter: 'A', cls: 'q-current', mark, ghost });
   }
 
   // 電熱線の回路（電池・スイッチ・ヒューズ・電流計）で、電流 I が流れた結果。熱さは電流に比例（電圧が一定なので）
@@ -71,7 +62,7 @@
     Svg.knifeSwitch(g, 84, top, { on: look.switchOn });
     Svg.fuse(g, fuseX, top, { blown: look.broken.fuse });
     Svg.note(g, fuseX, top - 20, `ヒューズ ${F} A`, { cls: 'value q-current', anchor: 'middle' });
-    drawHeater(g, right, mid, look.lamps[0] || 0);
+    Svg.heater(g, right, mid, { level: look.lamps[0] || 0 });
     Svg.note(g, right - 16, mid, `電熱線 R = ${R} Ω`, { cls: 'value q-active', anchor: 'end' });
     drawAmmeter(g, 176, bottom, look, F * 1.6, F);
     Svg.note(g, 180, NOTE_Y, '電流が多いほど電熱線は熱い。ヒューズは定格をこえると飛ぶ', { cls: 'faint', anchor: 'middle' });
@@ -124,7 +115,7 @@
     Svg.fuse(g, fuseX, top, { blown: look.broken.fuse });
     Svg.note(g, fuseX, top - 20, `ヒューズ ${F} A`, { cls: 'value q-current', anchor: 'middle' });
     if (installed) {
-      drawHeater(g, right, mid, look.lamps[0] || 0);
+      Svg.heater(g, right, mid, { level: look.lamps[0] || 0 });
       Svg.note(g, right - 16, mid, `${wires[selected]} Ω`, { cls: 'value q-active', anchor: 'end' });
     } else {
       Svg.el(g, 'rect', { x: right - 8, y: mid - 20, width: 16, height: 40, rx: 2, class: 'socket' });
@@ -154,12 +145,6 @@
   }
 
   // ---- 準備（前提の知識）：計器の針を予想して置く（または値を決める）→ スイッチ → 本物とくらべる ----
-
-  // 予想の針とくらべる問いの結果（当たりは同じ値のときだけ）
-  function predicted(input, truth, unit, why) {
-    if (near(input, truth)) return { ok: true, reason: `ぴったり！ ${why}` };
-    return { ok: false, reason: `本物は ${num(truth)} ${unit}（予想 ${num(input)} ${unit}）。${why}` };
-  }
 
   // 電流の向き（電池の＋から出て、回路をひと回りして −へ戻る）
   function drawCurrentArrows(g) {

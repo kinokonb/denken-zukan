@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 // レッスンのファイルは画面用（読み込み時に Notation、計算で DcCircuit などを使う）なので、先に用意する
 globalThis.Notation = require('../js/notation.js');
 globalThis.DcCircuit = require('../js/calc/dc-circuit.js');
+globalThis.PlayKit = require('../js/plays/kit.js');
 const Job = require('../js/job.js');
 const lessons = [
   ['オームの法則', require('../js/plays/ohm.js')],

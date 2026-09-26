@@ -31,7 +31,7 @@
 | ミッション（現場の依頼）の出題の組み立て（DOMなし） | [js/job.js](js/job.js)（[tests/job.test.js](tests/job.test.js) が、どの依頼も成功する入力がちょうど1つかを照合） |
 | ミッション（現場の依頼）の画面と演出（欄・スイッチの後の時間割・針のバネ・火花・煙・揺れ・浮かぶ文字・タイム・記録） | [js/job-play.js](js/job-play.js) |
 | 効果音と、その切り替え | [js/sound.js](js/sound.js) |
-| 依頼と準備の中身（数値の組・依頼の文・使う知識・結果の計算・現場の図） | レッスンごとの遊び [js/plays/](js/plays/)（`Plays[レッスンid]` の `jobs` と `basics`。例：[js/plays/ohm.js](js/plays/ohm.js)・[js/plays/series-parallel.js](js/plays/series-parallel.js)）。現場の部品（電球・ヒューズ・スイッチ・針の計器）は [js/svg.js](js/svg.js) |
+| 依頼と準備の中身（数値の組・依頼の文・使う知識・結果の計算・現場の図） | レッスンごとの遊び [js/plays/](js/plays/)（`Plays[レッスンid]` の `jobs` と `basics`。例：[js/plays/ohm.js](js/plays/ohm.js)・[js/plays/series-parallel.js](js/plays/series-parallel.js)）。遊びで共通の道具（数の書き方・予想とくらべる判定・計器と読み）は [js/plays/kit.js](js/plays/kit.js)、現場の部品（電球・電熱線・ヒューズ・スイッチ・針の計器・テスターのリード線）は [js/svg.js](js/svg.js) |
 | 旧形式のミッション（理論1・2以外、置き換え待ち）の出題と画面 | [js/mission.js](js/mission.js)（[tests/mission.test.js](tests/mission.test.js)）と [js/app.js](js/app.js) の `createMissionPlay` |
 | 量記号（斜体・添字）と数値の書き方 | [js/notation.js](js/notation.js) |
 | 見た目・色（ライト／ダーク） | [style.css](style.css) |
