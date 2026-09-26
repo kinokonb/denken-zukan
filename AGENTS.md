@@ -3,7 +3,7 @@
 - 正本path: `/Users/kinoko/Development/電験ずかん`
 - remote: `https://github.com/kinokonb/denken-zukan.git`（public。GitHub Pagesで配信するため、2026-09-26にユーザーが選択）
 - 統合branch: `main`
-- 起動・配備: 公開版 `open -a "Microsoft Edge" https://kinokonb.github.io/denken-zukan/`、ローカル `open -a "Microsoft Edge" index.html`。`main` へ push すると GitHub Pages に配備される。
+- 起動・配備: 公開版 `open -na "Microsoft Edge" --args --new-window "https://kinokonb.github.io/denken-zukan/"`、ローカル `open -na "Microsoft Edge" --args --new-window "/Users/kinoko/Development/電験ずかん/index.html"`。`main` へ push すると GitHub Pages に配備される。
 - 検証: `node --test tests/*.test.js`、`for f in js/*.js js/*/*.js sw.js; do node --check "$f"; done`、`node ~/.claude/tools/playtest/playtest.mjs .`、`node tools/sim/check.mjs <出力フォルダ>`
 - [README](README.md)（変更したい内容 → 担当の表）。仕様・決定・ロードマップ: [SPEC.md](SPEC.md)。検証記録: [docs/verification.md](docs/verification.md)。
 - 製品固有条件: 公開repoなので個人データ・秘密情報・教材の転載を入れない。実行時に外部通信・外部ライブラリを使わない（オフラインで動くこと）。計算は `js/calc/` の純粋関数に置き、教科書の値でテストする。図で誇張・省略した所は図か条件欄に書く。
