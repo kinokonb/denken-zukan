@@ -466,14 +466,6 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .battery .plate.thick { stroke-width: 4.5; }
 .resistor { fill: var(--paper); stroke: currentColor; stroke-width: 2; }
 .flow circle { fill: currentColor; }
-.motion { pointer-events: none; }
-.meter circle { fill: var(--paper); stroke: var(--ink); stroke-width: 1.75; }
-.meter text { fill: var(--ink); font-size: 11px; font-weight: 700; }
-/* 故障探し：タップできる所は点線の枠。当たりは丸、はずれは線で消す（色は量の意味専用なので墨で） */
-.tap-target { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.tap-area { fill: transparent; stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 3; }
-.tap-target.hit .tap-area, .tap-target.miss .tap-area { stroke: none; }
-.pen { fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; }
 .bar-part { stroke: var(--paper); stroke-width: 1.5; }
 .bar-part.q-voltage { fill: color-mix(in srgb, var(--q-voltage) 24%, var(--paper)); }
 .bar-part.q-current { fill: color-mix(in srgb, var(--q-current) 22%, var(--paper)); }

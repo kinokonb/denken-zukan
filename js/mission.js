@@ -1,8 +1,6 @@
-// ミッション：短い1セット（5問）。出題の組み立てと当たりの判定だけを持つ（DOMなし）。画面は js/app.js が組み立てる。
-// 各レッスンの missions は「型」の並び。型は2種類：
-// - つまみ：動かすつまみ（free）、数値の組の候補（cases）、固定する値（setup）、正解のつまみの値（answer）、当たりの判定（hit）
-// - 故障探し（tap: true）：図の中でおかしい所をタップして当てる。answer は壊れている所（レッスンの targets のどれか）、
-//   fault(target) はその所が壊れた時の故障（レッスンの compute・draw に渡す）
+// ミッション：つまみを動かして目標に合わせる、短い1セット（5問）。出題の組み立てと当たりの判定だけを持つ（DOMなし）。
+// 各レッスンの missions は「型」の並び。型は、動かすつまみ（free）、数値の組の候補（cases）、固定する値（setup）、
+// 正解のつまみの値（answer）、当たりの判定（hit）を持つ。画面は js/app.js が組み立てる。
 (function (global) {
   'use strict';
 
@@ -37,11 +35,10 @@
     return list;
   }
 
-  // 1問を作る。つまみの型は、始めの値を当たりにならない値から選び、答えから目盛りの1/4以上離れたものを優先する
+  // 1問を作る。始めの値は当たりにならない値から選び、答えから目盛りの1/4以上離れたものを優先する
   function makeMission(topic, templateIndex, values, rng) {
     const template = topic.missions[templateIndex];
     const fixed = template.setup(values);
-    if (template.tap) return { templateIndex, values, fixed, tap: true, answer: template.answer(values) };
     const base = { ...initialParams(topic), ...fixed };
     const param = topic.params.find((p) => p.key === template.free);
     const answer = template.answer(values);
@@ -71,11 +68,7 @@
     return topic.missions[mission.templateIndex].hit(topic.compute(params), mission.values);
   }
 
-  function isTapHit(mission, target) {
-    return target === mission.answer;
-  }
-
-  const Mission = { SET_SIZE, gridValues, onGrid, initialParams, buildSet, isHit, isTapHit };
+  const Mission = { SET_SIZE, gridValues, onGrid, initialParams, buildSet, isHit };
   if (typeof module !== 'undefined' && module.exports) module.exports = Mission;
   else global.Mission = Mission;
 })(this);

@@ -9,26 +9,9 @@
   const MID_Y = 92;
   const DOT_SPEED = 10; // 電流 1 A あたり、点が1秒に進む長さ
 
-  // 故障探しでタップできる抵抗。x・y は抵抗の中心
-  const TARGETS = [
-    { id: 'series-R1', x: (SERIES.left + SERIES.right) / 2, y: SERIES.top, vertical: false },
-    { id: 'series-R2', x: SERIES.right, y: MID_Y, vertical: true },
-    { id: 'parallel-R1', x: PARALLEL.branch, y: MID_Y, vertical: true },
-    { id: 'parallel-R2', x: PARALLEL.right, y: MID_Y, vertical: true },
-  ];
-
-  // fault（故障探しの時だけ）：{ open: 'parallel-R1' など切れた抵抗, revealed: 答え合わせ後か, marks: { タップした所: 'hit' | 'miss' } }
-  function compute(p, fault) {
-    const open = {};
-    if (fault) {
-      const [circuit, part] = fault.open.split('-');
-      open[circuit] = part;
-    }
-    return DcCircuit.seriesAndParallel({ V: p.V, R1: p.R1, R2: p.R2 }, open);
+  function compute(p) {
+    return DcCircuit.seriesAndParallel({ V: p.V, R1: p.R1, R2: p.R2 });
   }
-
-  const resistorSymbol = (part) => Notation.html(part === 'R1' ? 'R_1' : 'R_2');
-  const amperes = (value) => Notation.number(value, 2);
 
   function seriesPath() {
     const { left, right, top, bottom } = SERIES;
@@ -46,26 +29,10 @@
     };
   }
 
-  // 故障探しの間は、合成抵抗と分かれ方を隠して電池のそばの電流計と部品の値だけを手がかりにし、抵抗をタップできるようにする。
-  // 答え合わせの後は、切れた回路での分かれ方を見せ、タップしなかった所の枠を消す
-  function draw(svg, p, r, fault) {
+  function draw(svg, p, r) {
     Svg.paper(svg, WIDTH, HEIGHT);
     const g = Svg.el(svg, 'g');
-    drawCircuits(g);
-    if (fault) drawMeters(g, r);
-    else drawTotals(g, r);
-    if (!fault || fault.revealed) drawSplits(g, p, r);
-    else Svg.note(g, WIDTH / 2, 212, `部品はどちらも 電池 ${p.V} V・R₁ ${p.R1} Ω・R₂ ${p.R2} Ω`, { cls: 'value', anchor: 'middle' });
-    if (fault) {
-      for (const target of TARGETS) {
-        if (fault.revealed && !fault.marks[target.id]) continue;
-        const [w, h] = target.vertical ? [44, 60] : [60, 40];
-        Svg.tapTarget(g, { id: target.id, x: target.x, y: target.y, w, h, mark: fault.marks[target.id] });
-      }
-    }
-  }
 
-  function drawCircuits(g) {
     // 直列：R1 を上の導線、R2 を右の導線に
     Svg.note(g, (SERIES.left + SERIES.right) / 2, 20, '直列', { cls: 'value', anchor: 'middle' });
     Svg.wire(g, seriesPath());
@@ -74,34 +41,22 @@
     Svg.resistor(g, SERIES.right, MID_Y, { vertical: true });
     Svg.label(g, (SERIES.left + SERIES.right) / 2, SERIES.top + 20, 'R_1', { cls: 'q-active', size: 13 });
     Svg.label(g, SERIES.right - 14, MID_Y, 'R_2', { cls: 'q-active', anchor: 'end', size: 13 });
+    Svg.note(g, (SERIES.left + SERIES.right) / 2, 154, `合成 ${Notation.number(r.series.R, 1)} Ω`, { cls: 'value q-active', anchor: 'middle' });
+    Svg.note(g, (SERIES.left + SERIES.right) / 2, 170, `電流 ${Notation.number(r.series.I, 2)} A`, { cls: 'value q-current', anchor: 'middle' });
 
     // 並列：R1 と R2 を枝分かれに
+    const paths = parallelPaths();
     Svg.note(g, (PARALLEL.left + PARALLEL.right) / 2, 20, '並列', { cls: 'value', anchor: 'middle' });
-    for (const path of Object.values(parallelPaths())) Svg.wire(g, path);
+    for (const path of Object.values(paths)) Svg.wire(g, path);
     Svg.battery(g, PARALLEL.left, MID_Y);
     Svg.resistor(g, PARALLEL.branch, MID_Y, { vertical: true });
     Svg.resistor(g, PARALLEL.right, MID_Y, { vertical: true });
     Svg.label(g, PARALLEL.branch - 14, MID_Y, 'R_1', { cls: 'q-active', anchor: 'end', size: 13 });
     Svg.label(g, PARALLEL.right - 14, MID_Y, 'R_2', { cls: 'q-active', anchor: 'end', size: 13 });
-  }
-
-  function drawTotals(g, r) {
-    Svg.note(g, (SERIES.left + SERIES.right) / 2, 154, `合成 ${Notation.number(r.series.R, 1)} Ω`, { cls: 'value q-active', anchor: 'middle' });
-    Svg.note(g, (SERIES.left + SERIES.right) / 2, 170, `電流 ${amperes(r.series.I)} A`, { cls: 'value q-current', anchor: 'middle' });
     Svg.note(g, (PARALLEL.left + PARALLEL.right) / 2, 154, `合成 ${Notation.number(r.parallel.R, 1)} Ω`, { cls: 'value q-active', anchor: 'middle' });
-    Svg.note(g, (PARALLEL.left + PARALLEL.right) / 2, 170, `電流 ${amperes(r.parallel.I)} A`, { cls: 'value q-current', anchor: 'middle' });
-  }
+    Svg.note(g, (PARALLEL.left + PARALLEL.right) / 2, 170, `電流 ${Notation.number(r.parallel.I, 2)} A`, { cls: 'value q-current', anchor: 'middle' });
 
-  // 電流計は、電池と枝分かれの間（全体の電流が通る所）に置く
-  function drawMeters(g, r) {
-    Svg.meter(g, (SERIES.left + SERIES.right) / 2, SERIES.bottom, 'A');
-    Svg.meter(g, (PARALLEL.left + PARALLEL.branch) / 2, PARALLEL.bottom, 'A');
-    Svg.note(g, (SERIES.left + SERIES.right) / 2, 160, `電流計 ${amperes(r.series.I)} A`, { cls: 'value q-current', anchor: 'middle' });
-    Svg.note(g, (PARALLEL.left + PARALLEL.right) / 2, 160, `電流計 ${amperes(r.parallel.I)} A`, { cls: 'value q-current', anchor: 'middle' });
-  }
-
-  // 分かれ方：直列は電圧が R1 : R2 に、並列は電流が R2 : R1（抵抗の小さい方に多く）に分かれる
-  function drawSplits(g, p, r) {
+    // 分かれ方：直列は電圧が R1 : R2 に、並列は電流が R2 : R1（抵抗の小さい方に多く）に分かれる
     const barY = 212;
     const seriesWidth = SERIES.right - SERIES.left;
     Svg.note(g, SERIES.left, barY - 14, `電圧 ${Notation.number(p.V, 0)} V の分かれ方`, { cls: 'faint' });
@@ -122,21 +77,14 @@
     Svg.note(g, PARALLEL.right, barY + 36, `R₂ ${Notation.number(r.parallel.I2, 2)} A`, { cls: 'value q-current', anchor: 'end' });
   }
 
-  // 故障探しの間は電流の点を出さない（電流計だけが手がかり）。答え合わせの後は、電流の流れない所に点を置かない
-  function drawFlow(g, p, r, time, fault) {
-    if (fault && !fault.revealed) return;
+  function drawFlow(g, p, r, time) {
     const move = time * DOT_SPEED;
+    Svg.flowDots(g, seriesPath(), move * r.series.I);
     const paths = parallelPaths();
-    const flows = [
-      [seriesPath(), r.series.I],
-      [paths.out, r.parallel.I],
-      [paths.branch1, r.parallel.I1],
-      [paths.branch2, r.parallel.I2],
-      [paths.back, r.parallel.I],
-    ];
-    for (const [path, current] of flows) {
-      if (current > 0) Svg.flowDots(g, path, move * current);
-    }
+    Svg.flowDots(g, paths.out, move * r.parallel.I);
+    Svg.flowDots(g, paths.branch1, move * r.parallel.I1);
+    Svg.flowDots(g, paths.branch2, move * r.parallel.I2);
+    Svg.flowDots(g, paths.back, move * r.parallel.I);
   }
 
   global.TopicSeriesParallel = {
@@ -144,7 +92,6 @@
     title: '直列と並列',
     lead: '直列は電流が共通で電圧が分かれる。並列は電圧が共通で電流が分かれる。',
     viewBox: [WIDTH, HEIGHT],
-    targets: TARGETS.map((target) => target.id),
     params: [
       { key: 'V', name: '電池の電圧', symbol: 'V', unit: 'V', min: 1, max: 24, step: 1, value: 12 },
       { key: 'R1', name: '抵抗', symbol: 'R_1', unit: 'Ω', min: 2, max: 30, step: 1, value: 4 },
@@ -204,31 +151,6 @@
         now: (r) => `いま ${Notation.number(r.parallel.I, 2)} A`,
         hit: (r, { I }) => Math.abs(r.parallel.I - I) < 1e-9,
         reason: ({ V, R2, I }) => `<var>R</var><sub>2</sub> の枝 ${V}÷${R2} = ${V / R2} A、<var>R</var><sub>1</sub> の枝 ${V}÷${V / (I - V / R2)} = ${I - V / R2} A。合わせて ${I} A。`,
-      },
-      {
-        // 故障探し：並列の抵抗が1本切れている。電流計の値から、どれが切れたかを当てる
-        tap: true,
-        cases: [[12, 4, 12], [12, 6, 3], [24, 8, 12], [20, 5, 20], [18, 6, 9], [12, 3, 4]]
-          .flatMap(([V, R1, R2]) => ['R1', 'R2'].map((part) => ({ V, R1, R2, part }))),
-        setup: ({ V, R1, R2 }) => ({ V, R1, R2 }),
-        answer: ({ part }) => `parallel-${part}`,
-        fault: (target) => ({ open: target }),
-        text: () => '切れた抵抗を1本タップしよう',
-        how: () => 'どれか1本だけ切れている',
-        now: (r) => `電流計 直列 ${amperes(r.series.I)} A・並列 ${amperes(r.parallel.I)} A`,
-        reason: ({ V, R1, R2, part }) => {
-          const [other, R] = part === 'R1' ? ['R2', R2] : ['R1', R1];
-          return `並列の ${resistorSymbol(part)} が切れていた。流れるのは ${resistorSymbol(other)} の枝だけで ${V}÷${R} = ${V / R} A。`;
-        },
-        // ちがう所をタップした時：「そこが切れていたら電流計はいくつのはずか」を見せる
-        miss: ({ V, R1, R2 }, target, ifBroken, now) => {
-          const [circuit, part] = target.split('-');
-          if (circuit === 'series') {
-            return `直列の ${resistorSymbol(part)} が切れたら、通り道がなくなり直列は 0 A のはず。いまは ${amperes(now.series.I)} A。`;
-          }
-          const [other, R] = part === 'R1' ? ['R2', R2] : ['R1', R1];
-          return `並列の ${resistorSymbol(part)} が切れたら、${resistorSymbol(other)} の枝だけで ${V}÷${R} = ${ifBroken.parallel.I} A のはず。いまは ${amperes(now.parallel.I)} A。`;
-        },
       },
     ],
     terms: [

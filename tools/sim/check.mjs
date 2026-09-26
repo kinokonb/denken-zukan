@@ -188,9 +188,8 @@ async function checkMotion(page, id, label) {
   expect((await snapshot()) !== paused, `${label} ${id}: もう一度押しても動かない`);
 }
 
-// ミッション：始める → つまみの問題は動かせるのが1つのつまみだけで、目盛りを順に動かすと当たりが出る。
-// 故障探しの問題はつまみがすべて止まり、図のタップできる所を順に（実際のタップで）押すと、はずれは線で消え当たりが出る
-// （どちらも欄の高さは変わらない）→ 次へ … 5問でクリアと記録 → 閉じると元に戻る。ミッションのないレッスンには入口がない
+// ミッション：始める → 動かせるのは1つのつまみだけ → 目盛りを順に動かすと当たりが出る（欄の高さは変わらない）
+// → 次へ … 5問でクリアと記録 → 閉じると元に戻る。ミッションのないレッスンには入口がない
 const WITH_MISSIONS = TOPICS;
 async function checkMissions(page, id, label) {
   const start = page.locator('.mission-start');
@@ -198,22 +197,10 @@ async function checkMissions(page, id, label) {
     expect((await start.count()) === 0, `${label} ${id}: ミッションのないレッスンに入口がある`);
     return;
   }
-  // 出題は乱数なので、故障探しの型があるレッスンは、1セットに故障探しが必ず入るようにして確かめる
-  await page.evaluate(() => {
-    if (Mission.buildSet.withTap) return;
-    const build = Mission.buildSet;
-    Mission.buildSet = (topic, ...rest) => {
-      let set = build(topic, ...rest);
-      while (topic.missions.some((template) => template.tap) && !set.some((mission) => mission.tap)) set = build(topic, ...rest);
-      return set;
-    };
-    Mission.buildSet.withTap = true;
-  });
   await start.click();
   const stageHeight = await page.evaluate(() => document.querySelector('.stage').getBoundingClientRect().height);
   for (let n = 1; n <= 5; n++) {
-    const tapCount = await page.locator('svg.figure [data-target]').count();
-    const solved = tapCount > 0 ? await solveByTapping(page, stageHeight) : await page.evaluate((expectedHeight) => {
+    const solved = await page.evaluate((expectedHeight) => {
       const inputs = [...document.querySelectorAll('input[type="range"]')];
       const free = inputs.filter((i) => !i.disabled);
       if (free.length !== 1) return { error: `動かせるつまみが ${free.length} 個` };
@@ -257,41 +244,6 @@ async function checkMissions(page, id, label) {
     readouts: getComputedStyle(document.querySelector('.readouts')).display !== 'none',
   }));
   expect(closed.hidden && closed.enabled && closed.readouts, `${label} ${id}: 閉じても元に戻らない`);
-  expect((await page.locator('svg.figure [data-target]').count()) === 0, `${label} ${id}: 閉じても図にタップできる所が残る`);
-}
-
-// 故障探しの1問：つまみがすべて止まっていることを確かめ、タップできる所を順に実際にタップして当たりを出す
-async function solveByTapping(page, expectedHeight) {
-  const state = () => page.evaluate((height) => {
-    const panel = document.querySelector('.mission-panel');
-    const sub = panel.querySelector('.mission-sub');
-    const stageHeight = document.querySelector('.stage').getBoundingClientRect().height;
-    return {
-      locked: [...document.querySelectorAll('input[type="range"]')].every((x) => x.disabled),
-      solved: panel.classList.contains('solved'),
-      moved: Math.abs(stageHeight - height) >= 1 ? `${height}→${stageHeight}` : null,
-      nan: /NaN|Infinity|undefined/.test(panel.textContent) || /NaN/.test(document.querySelector('svg.figure').innerHTML),
-      fits: panel.scrollHeight <= panel.clientHeight + 1 && sub.scrollHeight <= sub.clientHeight + 1,
-      text: panel.querySelector('.mission-text').textContent,
-      sub: sub.textContent,
-      crossed: document.querySelectorAll('svg.figure .tap-target.miss').length,
-      dots: document.querySelectorAll('svg.figure .motion circle').length,
-    };
-  }, expectedHeight);
-  const before = await state();
-  if (!before.locked) return { error: '故障探しなのにつまみが動く' };
-  if (before.dots > 0) return { error: '答え合わせの前に電流の点が見えている' };
-  const targets = await page.locator('svg.figure [data-target]').evaluateAll((nodes) => nodes.map((node) => node.dataset.target));
-  for (const [i, target] of targets.entries()) {
-    await page.locator(`svg.figure [data-target="${target}"]`).click();
-    const now = await state();
-    if (now.moved) return { error: `故障探しで図の欄の高さが変わる（${now.moved}）` };
-    if (now.nan) return { error: '故障探しの欄か図に NaN' };
-    if (!now.fits) return { ok: true, locked: true, fits: false, text: `${now.text}（${now.sub}）` };
-    if (now.solved) return { ok: true, locked: now.locked, fits: now.fits, text: now.text };
-    if (now.crossed !== i + 1) return { error: `はずれの ${target} が線で消えない` };
-  }
-  return { error: '全部タップしても当たらない' };
 }
 
 // 幅の狭い iPhone（375px）で、全問題の文面（目標・今の値・当たりの理由）がミッションの欄に収まる
@@ -310,23 +262,6 @@ async function checkMissionTextFits() {
       const fits = () => panel.scrollHeight <= panel.clientHeight + 1 && sub.scrollHeight <= sub.clientHeight + 1;
       const bad = [];
       topic.missions.forEach((template) => {
-        if (template.tap) {
-          for (const values of template.cases) {
-            const params = { ...Mission.initialParams(topic), ...template.setup(values) };
-            const answer = template.answer(values);
-            const result = topic.compute(params, template.fault(answer));
-            text.innerHTML = template.text(values);
-            sub.innerHTML = `${template.how(values)}　<strong>${template.now(result)}</strong>`;
-            if (!fits()) bad.push(`${text.textContent}（今の値）`);
-            sub.innerHTML = `<strong>○ 当たり</strong>　${template.reason(values)}`;
-            if (!fits()) bad.push(`${text.textContent}（理由）`);
-            for (const other of topic.targets.filter((target) => target !== answer)) {
-              sub.innerHTML = `<strong>✗</strong>　${template.miss(values, other, topic.compute(params, template.fault(other)), result)}`;
-              if (!fits()) bad.push(`${text.textContent}（${other} のはずれ）`);
-            }
-          }
-          return;
-        }
         for (const values of template.cases) {
           const params = { ...Mission.initialParams(topic), ...template.setup(values), [template.free]: template.answer(values) };
           const result = topic.compute(params);
