@@ -11,6 +11,7 @@ globalThis.VoltageDrop = require('../js/calc/voltage-drop.js');
 globalThis.InductionMotor = require('../js/calc/induction-motor.js');
 globalThis.PowerFactor = require('../js/calc/power-factor.js');
 globalThis.AcWave = require('../js/calc/ac-wave.js');
+globalThis.Phasor = require('../js/calc/phasor.js');
 const lessons = [
   require('../js/topics/math-formula.js').TopicMathFormula,
   require('../js/topics/math-proportion.js').TopicMathProportion,
@@ -29,6 +30,7 @@ const lessons = [
   require('../js/topics/bridge.js').TopicBridge,
   require('../js/topics/internal-resistance.js').TopicInternalResistance,
   require('../js/topics/ac-rms.js').TopicAcRms,
+  require('../js/topics/phasor.js').TopicPhasor,
   require('../js/topics/rlc.js').TopicRlc,
   require('../js/topics/voltage-drop.js').TopicVoltageDrop,
   require('../js/topics/induction-motor.js').TopicInductionMotor,

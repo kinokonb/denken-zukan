@@ -10,6 +10,7 @@ globalThis.VoltageDrop = require('../js/calc/voltage-drop.js');
 globalThis.InductionMotor = require('../js/calc/induction-motor.js');
 globalThis.PowerFactor = require('../js/calc/power-factor.js');
 globalThis.AcWave = require('../js/calc/ac-wave.js');
+globalThis.Phasor = require('../js/calc/phasor.js');
 globalThis.PlayKit = require('../js/plays/kit.js');
 const Job = require('../js/job.js');
 const lessons = [
@@ -20,6 +21,7 @@ const lessons = [
   ['ブリッジ回路', require('../js/plays/bridge.js')],
   ['電池の内部抵抗', require('../js/plays/internal-resistance.js')],
   ['正弦波と実効値', require('../js/plays/ac-rms.js')],
+  ['位相とフェーザ', require('../js/plays/phasor.js')],
   ['RLC直列回路', require('../js/plays/rlc.js')],
   ['送電線の電圧降下', require('../js/plays/voltage-drop.js')],
   ['誘導電動機', require('../js/plays/induction-motor.js')],

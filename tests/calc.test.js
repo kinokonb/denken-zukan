@@ -7,6 +7,7 @@ const InductionMotor = require('../js/calc/induction-motor.js');
 const PowerFactor = require('../js/calc/power-factor.js');
 const DcCircuit = require('../js/calc/dc-circuit.js');
 const AcWave = require('../js/calc/ac-wave.js');
+const Phasor = require('../js/calc/phasor.js');
 
 const near = (actual, expected, tolerance, label) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} は ${expected}±${tolerance} ではない`);
@@ -120,6 +121,18 @@ test('直流と交流を重ねた実効値：30 V と 40 V で 50 V（2乗の平
   const v = AcWave.samples(30, 40);
   const rms = Math.sqrt(v.reduce((sum, x) => sum + x * x, 0) / v.length);
   near(rms, 50, 1e-9, '数値');
+});
+
+test('フェーザ：90° ずれた 100 V どうしの和は 141 V、120° なら 100 V、180° なら 0。成分の足し算でも同じ', () => {
+  near(Phasor.sumMagnitude(100, 100, 90), 141.42, 0.01, '90°');
+  near(Phasor.sumMagnitude(100, 100, 120), 100, 1e-9, '120°');
+  near(Phasor.sumMagnitude(100, 100, 180), 0, 1e-6, '180°');
+  near(Phasor.sumMagnitude(30, 50, 60), 70, 1e-9, '60°');
+  const sum = Phasor.add(Phasor.fromPolar(100, 0), Phasor.fromPolar(100, 90));
+  near(Phasor.magnitude(sum), 141.42, 0.01, '成分');
+  near(Phasor.angle(sum), 45, 1e-9, '角度');
+  near(Phasor.magnitude({ re: 60, im: 80 }), 100, 1e-12, '60 + j80');
+  assert.equal(Phasor.piText(-30), '−π/6');
 });
 
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };
