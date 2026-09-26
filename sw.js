@@ -17,6 +17,8 @@ const ASSETS = [
   'js/calc/voltage-drop.js',
   'js/calc/induction-motor.js',
   'js/calc/power-factor.js',
+  'js/calc/dc-circuit.js',
+  'js/topics/ohm.js',
   'js/topics/rlc.js',
   'js/topics/voltage-drop.js',
   'js/topics/induction-motor.js',

@@ -416,3 +416,42 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .exam p { margin: 0 0 8px; }
 .exam ul { margin: 0; padding-left: 1.2em; }
 .notes .symbols { margin-top: 8px; font-size: 13.5px; line-height: 1.8; color: var(--ink-2); }
+
+/* 回路図 */
+.wire { fill: none; stroke: var(--ink); stroke-width: 1.75; stroke-linejoin: round; }
+.battery .cut { fill: var(--paper); }
+.battery .plate { stroke: var(--ink); stroke-width: 2; }
+.battery .plate.thick { stroke-width: 4.5; }
+.resistor { fill: var(--paper); stroke: currentColor; stroke-width: 2; }
+.flow circle { fill: currentColor; }
+.bar-part { stroke: var(--paper); stroke-width: 1.5; }
+.bar-part.q-voltage { fill: color-mix(in srgb, var(--q-voltage) 24%, var(--paper)); }
+.bar-part.q-current { fill: color-mix(in srgb, var(--q-current) 22%, var(--paper)); }
+.bar-part.q-active { fill: color-mix(in srgb, var(--q-active) 22%, var(--paper)); }
+.bar-part.alt { fill: color-mix(in srgb, currentColor 10%, var(--paper)); }
+.area.q-active { fill: color-mix(in srgb, var(--q-active) 20%, var(--paper)); stroke: currentColor; stroke-width: 1.5; }
+.note.value { font-size: 13px; font-weight: 650; }
+
+/* 目次：はじめての人へ・単元・番号 */
+.start {
+  margin-top: 22px;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+}
+.start p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.7; }
+.start-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 700;
+  text-decoration: none;
+}
+.unit-head { margin: 14px 0 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-2); }
+.subject-head + .unit-head { margin-top: 4px; }
+.topic-number { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--ink-2); }

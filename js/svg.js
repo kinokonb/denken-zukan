@@ -105,5 +105,62 @@
     return el(parent, 'path', { d, class: `curve ${cls}` });
   }
 
-  global.Svg = { el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline };
+  // ---- 回路図 ----
+
+  // 導線。points は角の点の並び
+  function wire(parent, points) {
+    const d = points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x},${y}`).join('');
+    return el(parent, 'path', { d, class: 'wire' });
+  }
+
+  // 電池（縦向き、上が＋）。下の導線を紙色で消してから極板を描く
+  function battery(parent, x, y) {
+    const g = el(parent, 'g', { class: 'battery' });
+    el(g, 'rect', { x: x - 3, y: y - 7, width: 6, height: 14, class: 'cut' });
+    el(g, 'line', { x1: x - 15, y1: y - 5, x2: x + 15, y2: y - 5, class: 'plate' });
+    el(g, 'line', { x1: x - 8, y1: y + 5, x2: x + 8, y2: y + 5, class: 'plate thick' });
+    el(g, 'text', { x: x + 18, y: y - 10, class: 'note faint', 'text-anchor': 'start' }, '+');
+    return g;
+  }
+
+  // 抵抗（JISの長方形）。vertical で縦向き
+  function resistor(parent, cx, cy, { vertical = false, cls = 'q-active' } = {}) {
+    const [w, h] = vertical ? [16, 40] : [40, 16];
+    return el(parent, 'rect', { x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx: 2, class: `resistor ${cls}` });
+  }
+
+  // 電流の流れを点で描く（動く層用）。points の道のりに沿って、offset だけ進めた位置に spacing おきに置く
+  function flowDots(parent, points, offset, { spacing = 16, cls = 'q-current' } = {}) {
+    const segments = [];
+    let total = 0;
+    for (let i = 1; i < points.length; i++) {
+      const length = Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]);
+      segments.push({ from: points[i - 1], to: points[i], start: total, length });
+      total += length;
+    }
+    if (total <= 0) return;
+    const g = el(parent, 'g', { class: `flow ${cls}` });
+    const first = ((offset % spacing) + spacing) % spacing;
+    for (let at = first; at < total; at += spacing) {
+      const seg = segments.find((sg) => at < sg.start + sg.length) || segments[segments.length - 1];
+      const t = (at - seg.start) / seg.length;
+      el(g, 'circle', { cx: seg.from[0] + (seg.to[0] - seg.from[0]) * t, cy: seg.from[1] + (seg.to[1] - seg.from[1]) * t, r: 2.6 });
+    }
+  }
+
+  // 帯グラフ（分け方）。parts は { value, label, cls } の並び。全体の幅を値の比で分ける
+  function splitBar(parent, x, y, width, height, parts) {
+    const g = el(parent, 'g', { class: 'split-bar' });
+    const sum = parts.reduce((acc, part) => acc + part.value, 0);
+    let left = x;
+    for (const part of parts) {
+      const w = sum > 0 ? (width * part.value) / sum : 0;
+      el(g, 'rect', { x: left, y, width: w, height, class: `bar-part ${part.cls || ''}` });
+      if (w > 34) note(g, left + w / 2, y + height / 2, part.label, { cls: 'on-bar', anchor: 'middle' });
+      left += w;
+    }
+    return g;
+  }
+
+  global.Svg = { el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, resistor, flowDots, splitBar };
 })(this);

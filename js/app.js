@@ -4,13 +4,23 @@
 (function () {
   'use strict';
 
+  // 科目 › 単元 › レッスン。学ぶ順（前提になるものが先）に並べる。番号は科目ごとの通し番号
   const SUBJECTS = [
-    { id: 'riron', mark: '理', name: '理論', summary: '電気・磁気・回路の基本', topics: [TopicRlc] },
-    { id: 'denryoku', mark: '電', name: '電力', summary: '発電・変電・送電・配電', topics: [TopicVoltageDrop] },
-    { id: 'kikai', mark: '機', name: '機械', summary: 'モータ・変圧器・パワエレ', topics: [TopicInductionMotor] },
-    { id: 'hoki', mark: '法', name: '法規', summary: '法令と施設管理の計算', topics: [TopicPowerFactor] },
+    {
+      id: 'riron', mark: '理', name: '理論', summary: '電気・磁気・回路の基本。ほかの3科目の土台',
+      units: [
+        { name: '直流回路', topics: [TopicOhm] },
+        { name: '交流回路', topics: [TopicRlc] },
+      ],
+    },
+    { id: 'denryoku', mark: '電', name: '電力', summary: '発電・変電・送電・配電', units: [{ name: '送電・配電', topics: [TopicVoltageDrop] }] },
+    { id: 'kikai', mark: '機', name: '機械', summary: 'モータ・変圧器・パワエレ', units: [{ name: '誘導機', topics: [TopicInductionMotor] }] },
+    { id: 'hoki', mark: '法', name: '法規', summary: '法令と施設管理の計算', units: [{ name: '電気設備管理（計算）', topics: [TopicPowerFactor] }] },
   ];
-  const ALL_TOPICS = SUBJECTS.flatMap((subject) => subject.topics.map((topic) => ({ subject, topic })));
+  const ALL_TOPICS = SUBJECTS.flatMap((subject) => {
+    let number = 0;
+    return subject.units.flatMap((unit) => unit.topics.map((topic) => ({ subject, unit, topic, number: ++number })));
+  });
 
   const OFFLINE_TEXT = {
     checking: 'オフライン用に保存しています…',
@@ -59,6 +69,10 @@
           <li class="q-mech">機械の量</li>
         </ul>
       </header>
+      <section class="start">
+        <p><strong>はじめての人へ</strong>　電験は理論が土台。理論1から順に進むと、ほかの科目の図も読めるようになる。</p>
+        <a class="start-link" href="#/topic/${ALL_TOPICS[0].topic.id}">理論1から始める ›</a>
+      </section>
       ${SUBJECTS.map(subjectHtml).join('')}
       <p class="install-hint" hidden>ホーム画面に追加すると、アプリのように全画面で開けて、ネットがなくても確実に使えます。共有ボタン →「ホーム画面に追加」。</p>
       <footer class="app-footer">
@@ -81,18 +95,21 @@
           <span class="subject-name">${subject.name}</span>
           <span class="subject-summary">${subject.summary}</span>
         </h2>
-        <ul class="topic-list">
-          ${subject.topics.map((topic) => `
-            <li>
-              <a class="topic-link" href="#/topic/${topic.id}">
-                <svg class="thumb" data-topic="${topic.id}" aria-hidden="true"></svg>
-                <span class="topic-text">
-                  <span class="topic-title">${topic.title}</span>
-                  <span class="topic-lead">${topic.lead}</span>
-                </span>
-              </a>
-            </li>`).join('')}
-        </ul>
+        ${subject.units.map((unit) => `
+          <h3 class="unit-head">${unit.name}</h3>
+          <ul class="topic-list">
+            ${ALL_TOPICS.filter((entry) => entry.unit === unit).map(({ topic, number }) => `
+              <li>
+                <a class="topic-link" href="#/topic/${topic.id}">
+                  <svg class="thumb" data-topic="${topic.id}" aria-hidden="true"></svg>
+                  <span class="topic-text">
+                    <span class="topic-number">${subject.name}${number}</span>
+                    <span class="topic-title">${topic.title}</span>
+                    <span class="topic-lead">${topic.lead}</span>
+                  </span>
+                </a>
+              </li>`).join('')}
+          </ul>`).join('')}
       </section>`;
   }
 
@@ -104,7 +121,7 @@
 
   // ---- テーマのページ ----
 
-  function renderTopic(subject, topic) {
+  function renderTopic({ subject, unit, topic, number }) {
     document.title = `${topic.title} – 電験ずかん`;
     const params = initialParams(topic);
     const index = ALL_TOPICS.findIndex((entry) => entry.topic === topic);
@@ -113,7 +130,7 @@
     view.innerHTML = `
       <nav class="topbar">
         <a class="back" href="#/">‹ 目次</a>
-        <span class="crumb"><span class="seal small" aria-hidden="true">${subject.mark}</span>${subject.name}</span>
+        <span class="crumb"><span class="seal small" aria-hidden="true">${subject.mark}</span>${subject.name}${number}・${unit.name}</span>
       </nav>
       <header class="topic-head">
         <h1>${topic.title}</h1>
@@ -145,7 +162,7 @@
       ${quizHtml(topic)}
       ${topic.exam ? `<section class="exam"><h2>試験では</h2>${topic.exam}</section>` : ''}
       <nav class="next">
-        <a href="#/topic/${next.topic.id}"><span class="next-label">次のテーマ（${next.subject.name}）</span>${next.topic.title} ›</a>
+        <a href="#/topic/${next.topic.id}"><span class="next-label">次のレッスン（${next.subject.name}${next.number}・${next.unit.name}）</span>${next.topic.title} ›</a>
       </nav>`;
 
     const svg = view.querySelector('svg.figure');
@@ -336,7 +353,7 @@
   function route() {
     const match = location.hash.match(/^#\/topic\/([\w-]+)$/);
     const entry = match && ALL_TOPICS.find((e) => e.topic.id === match[1]);
-    if (entry) renderTopic(entry.subject, entry.topic);
+    if (entry) renderTopic(entry);
     else renderHome();
     window.scrollTo(0, 0);
   }

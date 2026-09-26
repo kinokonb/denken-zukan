@@ -16,8 +16,8 @@ const { chromium } = require('playwright');
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const outDir = path.resolve(process.argv[2] || os.tmpdir());
 const publishedUrl = process.argv[3];
-const TOPICS = ['rlc', 'voltage-drop', 'induction-motor', 'power-factor'];
-const MOVING = ['rlc', 'induction-motor']; // 開いたら自動で動くテーマ
+const TOPICS = ['ohm', 'rlc', 'voltage-drop', 'induction-motor', 'power-factor'];
+const MOVING = ['ohm', 'rlc', 'induction-motor']; // 開いたら自動で動くテーマ
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
 const server = http.createServer((req, res) => {
@@ -58,7 +58,7 @@ async function run(colorScheme) {
   await page.goto(base);
   await page.waitForFunction(() => document.getElementById('offline-status')?.dataset.state === 'ready', null, { timeout: 15000 })
     .catch(() => expect(false, `${colorScheme}: オフライン保存が ready にならない`));
-  expect((await page.locator('.topic-link').count()) === 4, `${colorScheme}: 目次のテーマが4つない`);
+  expect((await page.locator('.topic-link').count()) === TOPICS.length, `${colorScheme}: 目次のレッスンが ${TOPICS.length} こない`);
   expect(await page.evaluate(() => [...document.querySelectorAll('svg.thumb')].every((svg) => svg.childElementCount > 0)), `${colorScheme}: 目次の小さな図が空`);
   shots.push(await page.screenshot());
 
@@ -142,7 +142,7 @@ async function run(colorScheme) {
   await context.setOffline(true);
   await page.goto(base);
   await page.reload();
-  expect((await page.locator('.topic-link').count()) === 4, `${colorScheme}: オフラインで目次が開けない`);
+  expect((await page.locator('.topic-link').count()) === TOPICS.length, `${colorScheme}: オフラインで目次が開けない`);
   await page.goto(`${base}#/topic/power-factor`);
   await page.reload();
   expect(await page.locator('svg.figure > *').count() > 0, `${colorScheme}: オフラインでテーマが開けない`);

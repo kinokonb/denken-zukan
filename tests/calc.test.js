@@ -5,6 +5,7 @@ const RlcCircuit = require('../js/calc/rlc.js');
 const VoltageDrop = require('../js/calc/voltage-drop.js');
 const InductionMotor = require('../js/calc/induction-motor.js');
 const PowerFactor = require('../js/calc/power-factor.js');
+const DcCircuit = require('../js/calc/dc-circuit.js');
 
 const near = (actual, expected, tolerance, label) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} は ${expected}±${tolerance} ではない`);
@@ -100,4 +101,36 @@ test('力率改善：Qc=Q1 で力率1、入れすぎると進み力率', () => {
   const over = PowerFactor.analyze({ P: 400, powerFactor1: 0.8, Qc: 400 });
   assert.equal(over.leading, true);
   near(over.powerFactor2, 400 / Math.hypot(400, 100), 1e-12, '進み力率');
+});
+
+test('オームの法則：12 V・4 Ω で 3 A、コンダクタンスは 0.25 S', () => {
+  const r = DcCircuit.ohm({ V: 12, R: 4 });
+  near(r.I, 3, 1e-12, 'I');
+  near(r.G, 0.25, 1e-12, 'G');
+});
+
+test('直列と並列：10 Ω 2本は直列 20 Ω・並列 5 Ω、3 Ω と 6 Ω の並列は 2 Ω', () => {
+  assert.equal(DcCircuit.seriesResistance(10, 10), 20);
+  assert.equal(DcCircuit.parallelResistance(10, 10), 5);
+  assert.equal(DcCircuit.parallelResistance(3, 6), 2);
+});
+
+test('分圧と分流：4 Ω と 6 Ω の直列に 20 V で 8 V と 12 V、並列では 5 A と約 3.33 A', () => {
+  const r = DcCircuit.seriesAndParallel({ V: 20, R1: 4, R2: 6 });
+  near(r.series.I, 2, 1e-12, '直列の I');
+  near(r.series.V1, 8, 1e-12, 'V1');
+  near(r.series.V2, 12, 1e-12, 'V2');
+  near(r.parallel.I1, 5, 1e-12, 'I1');
+  near(r.parallel.I2, 20 / 6, 1e-12, 'I2');
+  near(r.parallel.I, r.parallel.I1 + r.parallel.I2, 1e-12, '分流の和');
+});
+
+test('電力と電力量：100 V・20 Ω で 5 A・500 W、2 時間で 1 kWh = 3,600 kJ', () => {
+  const r = DcCircuit.power({ V: 100, R: 20, hours: 2 });
+  near(r.I, 5, 1e-12, 'I');
+  near(r.P, 500, 1e-12, 'P');
+  near(r.energyKWh, 1, 1e-12, 'W');
+  near(r.heatKJ, 3600, 1e-9, '熱量');
+  // P = I²R = V²/R
+  near(r.P, r.I * r.I * 20, 1e-9, 'I²R');
 });
