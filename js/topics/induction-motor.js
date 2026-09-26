@@ -16,17 +16,6 @@
     };
   }
 
-  // 起動（s = 1）で目標のトルクになる二次抵抗（トルクが増えていく 1.24 Ω までの目盛りで、いちばん近いもの）
-  function startingResistance(target) {
-    let best = null;
-    for (let i = 0; i <= 114; i++) {
-      const r2 = Number((0.1 + i * 0.01).toFixed(2));
-      const diff = Math.abs(InductionMotor.analyze({ ...MOTOR, r2, s: 1 }).T - target);
-      if (best === null || diff < best.diff) best = { r2, diff };
-    }
-    return best.r2;
-  }
-
   function torqueCurve(r2, toX, toY) {
     const points = [];
     for (let i = 0; i <= 200; i++) {
@@ -147,42 +136,6 @@
       { name: 'トルク', symbol: 'T', value: Notation.number(r.T, 1), unit: 'N·m', cls: 'q-mech' },
       { name: '機械出力', symbol: 'P_o', value: Notation.number(r.Po / 1000, 2), unit: 'kW', cls: 'q-mech' },
       { name: '最大トルクのすべり', symbol: 's_m', value: Notation.number(r.sm, 3), unit: '' },
-    ],
-    // ミッション：トルク・回転速度を合わせる（答えはつまみの目盛りの上で当たりになる数だけ）
-    missions: [
-      {
-        free: 's',
-        cases: [0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 1.2].map((r2) => ({ r2 })),
-        setup: ({ r2 }) => ({ r2 }),
-        answer: ({ r2 }) => Math.round(InductionMotor.maxTorqueSlip({ ...MOTOR, r2 }) / 0.005) * 0.005,
-        text: () => 'トルクがいちばん大きくなるすべりにしよう',
-        how: ({ r2 }) => `二次抵抗 <var>r</var><sub>2</sub>' ${r2.toFixed(2)} Ω は固定。すべり <var>s</var> を動かす`,
-        now: (r) => `いま ${Notation.number(r.T, 1)} N·m（最大 ${Notation.number(r.Tm, 1)}）`,
-        hit: (r) => r.T >= 0.995 * r.Tm,
-        reason: ({ r2 }) => `<var>s</var><sub>m</sub> = <var>r</var><sub>2</sub>' ÷ √(<var>r</var><sub>1</sub>²+<var>x</var>²) = ${r2.toFixed(2)} ÷ 1.24 ≒ ${Notation.number(InductionMotor.maxTorqueSlip({ ...MOTOR, r2 }), 3)}（二次抵抗に比例）。`,
-      },
-      {
-        free: 'r2',
-        cases: [50, 60, 70, 75, 80].map((T) => ({ T })),
-        setup: () => ({ s: 1 }),
-        answer: ({ T }) => startingResistance(T),
-        text: ({ T }) => `起動トルクを ${T} N·m にしよう（±1）`,
-        how: () => 'すべり 1（止まっている）のまま。二次抵抗 <var>r</var><sub>2</sub>\' を動かす',
-        now: (r) => `いま 起動トルク ${Notation.number(r.T, 1)} N·m`,
-        hit: (r, { T }) => Math.abs(r.T - T) <= 1,
-        reason: ({ T }) => `<var>r</var><sub>2</sub>' = ${Notation.number(startingResistance(T), 2)} Ω で起動トルク ${T} N·m。巻線形は外付けの抵抗で起動トルクを上げる。`,
-      },
-      {
-        free: 's',
-        cases: [1440, 1425, 1470, 1455, 1350, 1200, 750].map((N) => ({ N })),
-        setup: () => ({}),
-        answer: ({ N }) => Number((1 - N / 1500).toFixed(3)),
-        text: ({ N }) => `回転速度をちょうど ${Notation.number(N, 0)} min⁻¹ にしよう`,
-        how: () => '同期速度は 1,500 min⁻¹。すべり <var>s</var> を動かす',
-        now: (r) => `いま ${Notation.number(r.N, 1)} min⁻¹`,
-        hit: (r, { N }) => Math.abs(r.N - N) < 1e-6,
-        reason: ({ N }) => `<var>s</var> = 1 − <var>N</var> ÷ <var>N</var><sub>s</sub> = 1 − ${Notation.number(N, 0)} ÷ 1,500 = ${Number((1 - N / 1500).toFixed(3))}（この割合が銅損）。`,
-      },
     ],
     terms: [
       ['回転磁界', '三相の電流を固定子（外側）の巻線に流すと、磁界がぐるぐる回る。回転子（内側）はこれに引っぱられて回る。'],

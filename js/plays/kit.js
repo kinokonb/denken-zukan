@@ -6,11 +6,12 @@
   // 小数2けたまでで、余分な 0 を付けない（1.50 → 1.5）
   const num = (value) => String(Number(value.toFixed(2)));
   const near = (a, b) => Math.abs(a - b) < 1e-9;
+  const withUnit = (value, unit) => (unit ? `${num(value)} ${unit}` : num(value));
 
   // 予想の針とくらべる問いの結果（当たりは同じ値のときだけ）。why は計算の理由
   function predicted(input, truth, unit, why) {
     if (near(input, truth)) return { ok: true, reason: `ぴったり！ ${why}` };
-    return { ok: false, reason: `本物は ${num(truth)} ${unit}（予想 ${num(input)} ${unit}）。${why}` };
+    return { ok: false, reason: `本物は ${withUnit(truth, unit)}（予想 ${withUnit(input, unit)}）。${why}` };
   }
 
   // 目盛り（step おき）に乗らない値（√3 をかけた値など）を予想する問い。当たりは本物にいちばん近い目盛りのときだけ
@@ -18,8 +19,8 @@
 
   function predictedNearest(input, truth, step, unit, why) {
     const mark = nearestMark(truth, step);
-    if (near(input, mark)) return { ok: true, reason: `当たり！ ${why}。いちばん近い目盛りは ${num(mark)} ${unit}` };
-    return { ok: false, reason: `本物は約 ${Math.round(truth)} ${unit}（予想 ${num(input)} ${unit}）。${why}` };
+    if (near(input, mark)) return { ok: true, reason: `当たり！ ${why}。いちばん近い目盛りは ${withUnit(mark, unit)}` };
+    return { ok: false, reason: `本物は約 ${withUnit(Math.round(truth), unit)}（予想 ${withUnit(input, unit)}）。${why}` };
   }
 
   // 針の計器（look.meter を指す）と、その下の読み（結果が出るまで「？ 単位」）。ghost は予想の針、mark は目盛りの印、

@@ -361,8 +361,13 @@ async function solveJobs(page, id, label, count, expectBasicsButton) {
         : (job.answer + 1) % job.parts;
     await setInput(job, wrong);
     if (job.kind === 'probe') {
-      const texts = await page.locator('.job-scene text').allTextContents();
-      expect(texts.filter((t) => /^[\d.]+ [VA]$/.test(t)).length >= 2, `${label} ${id}: ${n}問目：テスターの読みが出ない`);
+      // タップした部品の読み（型の probe.reading が出す文字）が図に出る
+      const shown = await page.evaluate((index) => {
+        const { template, values } = document.querySelector('.job-panel').currentJob;
+        const expected = template.probe.reading(template.probe.measure(values, index));
+        return [...document.querySelectorAll('.job-scene text')].some((t) => t.textContent === expected);
+      }, wrong);
+      expect(shown, `${label} ${id}: ${n}問目：テスターの読みが出ない`);
     }
     const miss = await runAndRead();
     expect(miss.failed && !miss.solved, `${label} ${id}: ${n}問目：まちがった入力で失敗にならない（${miss.text}）`);

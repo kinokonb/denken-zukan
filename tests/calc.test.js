@@ -72,6 +72,13 @@ test('電圧降下：家が並ぶ配電線。区間の電流は先の家の合�
 
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };
 
+test('誘導電動機（一次の抵抗を省いた式）：すべりが sm で最大トルク、sm=0.2 の起動トルクは最大の約 38%、二次抵抗 4 倍なら同じトルクのすべりも 4 倍', () => {
+  near(InductionMotor.torqueRatio(0.2, 0.2), 1, 1e-12, '最大');
+  near(InductionMotor.torqueRatio(1, 0.2), 2 * 0.2 / 1.04, 1e-12, '起動');
+  near(InductionMotor.torqueRatio(0.05, 0.2), InductionMotor.torqueRatio(0.2, 0.8), 1e-12, '比例推移');
+  near(InductionMotor.torqueRatio(1, 1), 1, 1e-12, 'sm=1 なら起動で最大');
+});
+
 test('誘導電動機：4極50Hzの同期速度は1500 min⁻¹、s=0.04 で 1440 min⁻¹', () => {
   assert.equal(InductionMotor.synchronousSpeed(50, 4), 1500);
   const r = InductionMotor.analyze({ ...motor, r2: 0.3, s: 0.04 });

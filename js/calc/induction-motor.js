@@ -33,7 +33,13 @@
     return (3 * phaseVoltage * phaseVoltage) / (2 * omegaS * (r1 + Math.hypot(r1, x)));
   }
 
-  const InductionMotor = { analyze, synchronousSpeed, maxTorqueSlip, maxTorque };
+  // 一次側の抵抗と励磁回路を省いた時のトルク（最大トルクを 1 とした割合、クロスの式）。sm は最大トルクになるすべり。
+  // s ÷ sm だけで決まるので、二次抵抗を k 倍（sm も k 倍）にすると、同じトルクのすべりも k 倍になる（比例推移）
+  function torqueRatio(s, sm) {
+    return (2 * s * sm) / (s * s + sm * sm);
+  }
+
+  const InductionMotor = { analyze, synchronousSpeed, maxTorqueSlip, maxTorque, torqueRatio };
   if (typeof module !== 'undefined' && module.exports) module.exports = InductionMotor;
   else global.InductionMotor = InductionMotor;
 })(this);
