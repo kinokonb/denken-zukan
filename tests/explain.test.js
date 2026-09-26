@@ -12,6 +12,9 @@ globalThis.InductionMotor = require('../js/calc/induction-motor.js');
 globalThis.PowerFactor = require('../js/calc/power-factor.js');
 const lessons = [
   require('../js/topics/math-formula.js').TopicMathFormula,
+  require('../js/topics/math-proportion.js').TopicMathProportion,
+  require('../js/topics/math-prefix.js').TopicMathPrefix,
+  require('../js/topics/math-square.js').TopicMathSquare,
   require('../js/topics/ohm.js').TopicOhm,
   require('../js/topics/series-parallel.js').TopicSeriesParallel,
   require('../js/topics/electric-power.js').TopicElectricPower,

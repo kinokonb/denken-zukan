@@ -9,7 +9,7 @@
     {
       id: 'kiso', mark: '基', name: '基礎', summary: '電気に要る数学と理科。知識ゼロから',
       units: [
-        { name: '数と式', topics: [TopicMathFormula] },
+        { name: '数と式', topics: [TopicMathFormula, TopicMathProportion, TopicMathPrefix, TopicMathSquare] },
       ],
     },
     {

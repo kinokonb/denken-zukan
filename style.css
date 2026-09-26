@@ -485,6 +485,10 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .bar-part.alt { fill: color-mix(in srgb, currentColor 12%, var(--paper)); }
 .tile { fill: color-mix(in srgb, currentColor 18%, var(--paper)); stroke: currentColor; stroke-width: 1; stroke-opacity: 0.55; }
 .side { stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
+.rung { fill: var(--paper); stroke: var(--ink-3); stroke-width: 1; }
+.rung.current { stroke: var(--ink); stroke-width: 2.5; }
+.digit-cell { fill: var(--paper); stroke: var(--ink-3); stroke-width: 1; }
+.digit-from { fill: none; stroke: var(--ink-2); stroke-width: 1.25; stroke-dasharray: 2 2; }
 .area.q-active { fill: color-mix(in srgb, var(--q-active) 20%, var(--paper)); stroke: currentColor; stroke-width: 1.5; }
 .note.value { font-size: 13px; font-weight: 650; }
 
