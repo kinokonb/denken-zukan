@@ -46,6 +46,7 @@ const ASSETS = [
   'js/plays/rlc.js',
   'js/plays/voltage-drop.js',
   'js/plays/induction-motor.js',
+  'js/plays/power-factor.js',
   'js/app.js',
 ];
 

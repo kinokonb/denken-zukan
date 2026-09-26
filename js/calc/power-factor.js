@@ -25,7 +25,7 @@
     return P * (tanOf(powerFactor1) - tanOf(powerFactor2));
   }
 
-  const PowerFactor = { analyze, capacitorFor };
+  const PowerFactor = { tanOf, analyze, capacitorFor };
   if (typeof module !== 'undefined' && module.exports) module.exports = PowerFactor;
   else global.PowerFactor = PowerFactor;
 })(this);

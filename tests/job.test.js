@@ -8,6 +8,7 @@ globalThis.Notation = require('../js/notation.js');
 globalThis.DcCircuit = require('../js/calc/dc-circuit.js');
 globalThis.VoltageDrop = require('../js/calc/voltage-drop.js');
 globalThis.InductionMotor = require('../js/calc/induction-motor.js');
+globalThis.PowerFactor = require('../js/calc/power-factor.js');
 globalThis.PlayKit = require('../js/plays/kit.js');
 const Job = require('../js/job.js');
 const lessons = [
@@ -17,6 +18,7 @@ const lessons = [
   ['RLC直列回路', require('../js/plays/rlc.js')],
   ['送電線の電圧降下', require('../js/plays/voltage-drop.js')],
   ['誘導電動機', require('../js/plays/induction-motor.js')],
+  ['力率改善', require('../js/plays/power-factor.js')],
 ];
 
 // 再現できる乱数（mulberry32）

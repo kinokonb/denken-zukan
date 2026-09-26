@@ -11,13 +11,6 @@
     return { ...r, Qc: p.Qc, QcForTarget: p.cos1 < TARGET ? PowerFactor.capacitorFor(p.P, p.cos1, TARGET) : 0 };
   }
 
-  // 電流（皮相電力）を ratio 倍にするコンデンサ容量（遅れのまま）
-  function capacitorForCurrent({ P, cos1, ratio }) {
-    const S2 = (P / cos1) * ratio;
-    const Q1 = P * (Math.sqrt(1 - cos1 * cos1) / cos1);
-    return Q1 - Math.sqrt(S2 * S2 - P * P);
-  }
-
   function draw(svg, p, r) {
     Svg.paper(svg, WIDTH, HEIGHT);
     const improved = p.Qc > 0;
@@ -101,41 +94,6 @@
       { name: `${TARGET} に必要な容量`, symbol: 'Q_c', value: Notation.number(r.QcForTarget, 0), unit: 'kvar' },
     ],
     // ミッション：力率・電流を合わせる（答えはつまみの目盛りの上で当たりになる数だけ）
-    missions: [
-      {
-        free: 'Qc',
-        cases: [[400, 0.8], [500, 0.7], [300, 0.75], [600, 0.85], [1000, 0.8], [200, 0.6]].map(([P, cos1]) => ({ P, cos1 })),
-        setup: ({ P, cos1 }) => ({ P, cos1 }),
-        answer: ({ P, cos1 }) => Math.ceil(PowerFactor.capacitorFor(P, cos1, TARGET) - 1e-9),
-        text: () => `力率 ${TARGET} 以上になる、いちばん小さいコンデンサにしよう`,
-        how: ({ P, cos1 }) => `${P} kW・力率 ${cos1.toFixed(2)} の負荷は固定。<var>Q</var><sub>c</sub> を動かす`,
-        now: (r) => `いま 力率 ${Notation.number(r.powerFactor2, 3)}${r.leading ? '（進み）' : ''}`,
-        hit: (r, { P, cos1 }) => r.Qc === Math.ceil(PowerFactor.capacitorFor(P, cos1, TARGET) - 1e-9),
-        reason: ({ P, cos1 }) => `<var>Q</var><sub>c</sub> = <var>P</var>(tan<var>θ</var><sub>1</sub> − tan<var>θ</var><sub>2</sub>) = ${P} × (${Notation.number(Math.sqrt(1 - cos1 * cos1) / cos1, 3)} − 0.329) ≒ ${Notation.number(PowerFactor.capacitorFor(P, cos1, TARGET), 1)} kvar。`,
-      },
-      {
-        free: 'Qc',
-        cases: [[400, 0.8], [500, 0.6], [300, 0.8], [1000, 0.9], [600, 0.5], [800, 0.75]].map(([P, cos1]) => ({ P, cos1 })),
-        setup: ({ P, cos1 }) => ({ P, cos1 }),
-        answer: ({ P, cos1 }) => Math.round(P * Math.sqrt(1 - cos1 * cos1) / cos1),
-        text: () => '力率をちょうど 1 にしよう',
-        how: ({ P, cos1 }) => `${P} kW・力率 ${cos1.toFixed(2)} の負荷は固定。<var>Q</var><sub>c</sub> を動かす`,
-        now: (r) => `いま 無効電力 ${Notation.number(r.Q2, 0)} kvar${r.leading ? '（進み）' : ''}`,
-        hit: (r) => Math.abs(r.Q2) <= 0.5,
-        reason: ({ P, cos1 }) => `負荷の無効電力 <var>Q</var> = <var>P</var> tan<var>θ</var> ≒ ${Notation.number(P * Math.sqrt(1 - cos1 * cos1) / cos1, 0)} kvar を、同じ大きさのコンデンサで打ち消すと力率 1。`,
-      },
-      {
-        free: 'Qc',
-        cases: [[400, 0.8, 0.9], [400, 0.8, 0.85], [500, 0.7, 0.8], [1000, 0.6, 0.75], [300, 0.75, 0.9]].map(([P, cos1, ratio]) => ({ P, cos1, ratio })),
-        setup: ({ P, cos1 }) => ({ P, cos1 }),
-        answer: (c) => Math.round(capacitorForCurrent(c)),
-        text: ({ ratio }) => `電流をいまの ${Math.round(ratio * 100)}% に減らそう（±0.3%）`,
-        how: ({ P, cos1 }) => `${P} kW・力率 ${cos1.toFixed(2)} の負荷は固定。<var>Q</var><sub>c</sub> を動かす`,
-        now: (r) => `いま 電流 ${Notation.number(r.currentRatio * 100, 1)}%`,
-        hit: (r, { ratio }) => !r.leading && Math.abs(r.currentRatio - ratio) <= 0.003,
-        reason: (c) => `電流は皮相電力 <var>S</var> に比例。<var>S</var> を ${Math.round(c.ratio * 100)}% にするには、<var>Q</var><sub>c</sub> ≒ ${Notation.number(capacitorForCurrent(c), 0)} kvar。<var>P</var> はそのまま。`,
-      },
-    ],
     terms: [
       ['有効電力 <var>P</var>', '実際に仕事（熱・動力・光）になる電力。単位 kW。'],
       ['無効電力 <var>Q</var>', 'コイルやコンデンサと電源の間を行き来するだけで、仕事をしない電力。単位 kvar（キロバール）。'],
