@@ -16,8 +16,8 @@ const { chromium } = require('playwright');
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const outDir = path.resolve(process.argv[2] || os.tmpdir());
 const publishedUrl = process.argv[3];
-const TOPICS = ['ohm', 'rlc', 'voltage-drop', 'induction-motor', 'power-factor'];
-const MOVING = ['ohm', 'rlc', 'induction-motor']; // 開いたら自動で動くテーマ
+const TOPICS = ['ohm', 'series-parallel', 'electric-power', 'rlc', 'voltage-drop', 'induction-motor', 'power-factor'];
+const MOVING = ['ohm', 'series-parallel', 'rlc', 'induction-motor']; // 開いたら自動で動くテーマ
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
 const server = http.createServer((req, res) => {
@@ -210,4 +210,4 @@ if (failures.length) {
   console.log(`NG ${failures.length}件\n- ${failures.join('\n- ')}`);
   process.exit(1);
 }
-console.log(`OK：目次と4テーマ（ライト・ダーク）、動く図の再生・停止、つまみの両端・ボタン・オフライン再読み込み。一覧: ${outDir}/light.png, dark.png`);
+console.log(`OK：目次と全${TOPICS.length}レッスン（ライト・ダーク）、動く図の再生・停止、つまみの両端・ボタン・オフライン再読み込み。一覧: ${outDir}/light.png, dark.png`);

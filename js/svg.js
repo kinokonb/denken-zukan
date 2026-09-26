@@ -156,7 +156,7 @@
     for (const part of parts) {
       const w = sum > 0 ? (width * part.value) / sum : 0;
       el(g, 'rect', { x: left, y, width: w, height, class: `bar-part ${part.cls || ''}` });
-      if (w > 34) note(g, left + w / 2, y + height / 2, part.label, { cls: 'on-bar', anchor: 'middle' });
+      if (part.label && w > 34) note(g, left + w / 2, y + height / 2, part.label, { cls: 'on-bar', anchor: 'middle' });
       left += w;
     }
     return g;

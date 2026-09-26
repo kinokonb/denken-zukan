@@ -8,21 +8,26 @@
 - 更新：通信のある所で開くと裏で新しい版を取り込み、次に開いた時から新しい版になる。
 - Mac：`open -a "Microsoft Edge" https://kinokonb.github.io/denken-zukan/`。repoの `index.html` を直接開いても動く（その開き方ではオフライン保存はしない）。
 
-## 今あるテーマ（v0.1.1）
-| 科目 | テーマ | 動かせるもの |
-|---|---|---|
-| 理論 | RLC直列回路とフェーザ図 | R・L・C・周波数、「共振させる」。矢印が回り、電圧・電流の波形が流れる |
-| 電力 | 送電線の電圧降下 | 負荷電流・力率・1線のR・X |
-| 機械 | 誘導電動機のトルクとすべり | すべり・二次抵抗、「起動の瞬間」「最大トルクで起動」。回転磁界と回転子が回る |
-| 法規 | 力率改善とコンデンサ | 有効電力・改善前の力率・コンデンサ容量、「力率0.95にする」「力率1にする」 |
+## 今あるレッスン（v0.2）
+目次は 科目 › 単元 › 番号つきレッスン で、学ぶ順（前提になるものが先）に並ぶ。どのレッスンも「ことば → 動く図と計算結果 → やってみよう → つまみ → しくみ・式 → 確かめ問題 → 試験では」の形。
+
+| 番号 | 単元 | レッスン | 図 |
+|---|---|---|---|
+| 理論1 | 直流回路 | 電圧・電流・抵抗とオームの法則 | 回路を電流の点が流れる（自動で動く）、V–I グラフ |
+| 理論2 | 直流回路 | 直列と並列 | 直列と並列を並べて電流が流れる（自動で動く）、電圧・電流の分かれ方 |
+| 理論3 | 直流回路 | 電力と電力量 | P = V²/R の放物線、電力量＝長方形の面積 |
+| 理論4 | 交流回路 | RLC直列回路とフェーザ図 | 矢印が回り電圧・電流の波形が流れる（自動で動く）、共振曲線 |
+| 電力1 | 送電・配電 | 送電線の電圧降下 | 1相分のフェーザ図 |
+| 機械1 | 誘導機 | 誘導電動機のトルクとすべり | トルク曲線、回転磁界と回転子（自動で動く）、二次入力の行き先 |
+| 法規1 | 電気設備管理（計算） | 力率改善とコンデンサ | 電力の三角形 |
 
 ## 変更したい内容 → 担当
 | 変えたいこと | 担当 |
 |---|---|
-| テーマの文章・つまみ・図・計算結果の欄 | [js/topics/](js/topics/)（1テーマ1ファイル） |
+| レッスンの文章・ことば・やってみよう・確かめ問題・試験では・つまみ・図 | [js/topics/](js/topics/)（1レッスン1ファイル） |
 | 計算式 | [js/calc/](js/calc/)（DOMなしの関数。[tests/calc.test.js](tests/calc.test.js) で教科書の値と照合） |
-| 目次、テーマの画面の組み立て、つまみ → 計算 → 図の流れ、動く図の再生 | [js/app.js](js/app.js) |
-| 図の部品（方眼・矢印・量記号のラベル・角度の弧） | [js/svg.js](js/svg.js) |
+| 目次（科目・単元・番号）、レッスンの画面の組み立て、つまみ → 計算 → 図の流れ、動く図の再生、やってみよう・確かめ問題の動き | [js/app.js](js/app.js) の `SUBJECTS` ほか |
+| 図の部品（方眼・矢印・量記号のラベル・角度の弧・導線・電池・抵抗・電流の点・帯グラフ） | [js/svg.js](js/svg.js) |
 | 量記号（斜体・添字）と数値の書き方 | [js/notation.js](js/notation.js) |
 | 見た目・色（ライト／ダーク） | [style.css](style.css) |
 | オフライン保存 | [sw.js](sw.js)（ファイルを足したら `ASSETS` へ。[tests/offline.test.js](tests/offline.test.js) が照合） |
@@ -30,11 +35,11 @@
 | アイコン | [icons/icon.svg](icons/icon.svg) を直して `node tools/make-icons.mjs` |
 | 資料（過去問題集）を読む | [tools/reference.swift](tools/reference.swift) |
 
-### テーマの足し方
+### レッスンの足し方
 0. 資料（過去問題集、[AGENTS.md](AGENTS.md) の「資料」）でそのテーマの過去問を探し（`swift tools/reference.swift find <科目> <語>`）、問われ方・記号・単位・典型値を合わせる。本文・図・問題は写さない。
 1. `js/calc/` に計算を置き、`tests/calc.test.js` に教科書の値で確かめるテストを足す。
-2. `js/topics/` にテーマを置く（`params`・`presets`・`compute`・`draw`・`caption`・`readouts`・`conditions`・`notesHtml`）。交流の時間変化や回転のように、動くこと自体に意味がある図だけ `motion: { draw(g, params, result, time) }` を足す（動く部分だけを描く。開いたら自動で動き、止める／動かすボタンが付く）。
-3. `index.html` に `<script>`、`js/app.js` の `SUBJECTS` に登録、`sw.js` の `ASSETS` に追加。
+2. `js/topics/` にレッスンを置く（`params`・`presets`・`compute`・`draw`・`caption`・`readouts`・`conditions`・`notesHtml`、初心者向けの `terms`（ことば）・`tries`（やってみよう：`set` は初期値からの変更）・`quiz`（3問、`answer` は正解の番号）・`exam`（試験では））。説明文（caption）は2行に収める。交流の時間変化や回転のように、動くこと自体に意味がある図だけ `motion: { draw(g, params, result, time) }` を足す（動く部分だけを描く。開いたら自動で動き、止める／動かすボタンが付く）。
+3. `index.html` に `<script>`、`js/app.js` の `SUBJECTS` の単元に学ぶ順で登録（番号は自動）、`sw.js` の `ASSETS` に追加。
 4. `tools/sim/check.mjs` の `TOPICS`（動くなら `MOVING` にも）に追加。
 
 ## 検証
@@ -44,7 +49,7 @@ for f in js/*.js js/*/*.js sw.js; do node --check "$f"; done
 node ~/.claude/tools/playtest/playtest.mjs .
 node tools/sim/check.mjs <出力フォルダ>
 ```
-`tools/sim/check.mjs` は iPhone幅（430×932）のライト・ダークで、目次と全テーマを開き、つまみを両端まで動かし、ボタンを押し、通信を切って開き直す。図の NaN、横のはみ出し、操作中の図の高さの変化、コンソールのエラーを失敗として数え、目次と各テーマを並べた一覧画像（`light.png`・`dark.png`）を書き出す。
+`tools/sim/check.mjs` は iPhone幅（430×932）のライト・ダークで、目次と全レッスンを開き、動く図の再生・停止、やってみよう・確かめ問題・ことばを操作し、つまみを両端まで動かし、ボタンを押し、通信を切って開き直す。図の NaN、横のはみ出し、操作中の図の高さの変化、コンソールのエラーを失敗として数え、目次と各テーマを並べた一覧画像（`light.png`・`dark.png`）を書き出す。
 配備後は `node tools/sim/check.mjs <出力フォルダ> https://kinokonb.github.io/denken-zukan/` で公開版を同じように確かめ、保存一覧の全ファイルがrepoと同じかも照合する。
 
 ## 配備

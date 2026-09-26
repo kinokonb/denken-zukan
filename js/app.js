@@ -9,7 +9,7 @@
     {
       id: 'riron', mark: '理', name: '理論', summary: '電気・磁気・回路の基本。ほかの3科目の土台',
       units: [
-        { name: '直流回路', topics: [TopicOhm] },
+        { name: '直流回路', topics: [TopicOhm, TopicSeriesParallel, TopicElectricPower] },
         { name: '交流回路', topics: [TopicRlc] },
       ],
     },
