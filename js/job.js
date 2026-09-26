@@ -10,8 +10,44 @@
 (function (global) {
   'use strict';
 
-  const Mission = typeof module !== 'undefined' && module.exports ? require('./mission.js') : global.Mission;
   const SET_SIZE = 5;
+
+  function decimalsOf(step) {
+    const text = String(step);
+    return text.includes('.') ? text.split('.')[1].length : 0;
+  }
+
+  // つまみの目盛りに乗る値の一覧
+  function gridValues({ min, max, step }) {
+    const count = Math.round((max - min) / step);
+    const digits = decimalsOf(step);
+    return Array.from({ length: count + 1 }, (_, i) => Number((min + i * step).toFixed(digits)));
+  }
+
+  function shuffle(items, rng) {
+    const list = [...items];
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  }
+
+  // 型ごとの数値の組を混ぜて size 問を選ぶ。同じ型が3問続かないようにする
+  function pickCases(templates, rng, size) {
+    const pool = shuffle(
+      templates.flatMap((template, t) => template.cases.map((values) => ({ t, values }))),
+      rng,
+    );
+    const picked = [];
+    while (picked.length < size && pool.length > 0) {
+      const lastTwo = picked.slice(-2).map((c) => c.t);
+      const repeats = (c) => lastTwo.length === 2 && lastTwo.every((t) => t === c.t);
+      const index = pool.findIndex((c) => !repeats(c));
+      picked.push(pool.splice(index >= 0 ? index : 0, 1)[0]);
+    }
+    return picked;
+  }
 
   function range(min, max) {
     return Array.from({ length: max - min + 1 }, (_, i) => min + i);
@@ -19,7 +55,7 @@
 
   // 決められる入力の一覧
   function inputs(template) {
-    if (template.kind === 'dial') return Mission.gridValues(template.dial);
+    if (template.kind === 'dial') return gridValues(template.dial);
     if (template.kind === 'count') return range(template.count.min, template.count.max);
     return range(0, template.probe.parts - 1);
   }
@@ -37,7 +73,7 @@
   }
 
   function buildSet(templates, rng = Math.random, size = SET_SIZE) {
-    return Mission.pickCases(templates, rng, size).map(({ t, values }) => ({
+    return pickCases(templates, rng, size).map(({ t, values }) => ({
       templateIndex: t,
       values,
       start: startInput(templates[t], values, rng),

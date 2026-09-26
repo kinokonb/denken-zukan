@@ -13,7 +13,6 @@ const ASSETS = [
   'js/version.js',
   'js/notation.js',
   'js/svg.js',
-  'js/mission.js',
   'js/job.js',
   'js/sound.js',
   'js/job-play.js',

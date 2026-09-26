@@ -216,66 +216,14 @@ async function checkMotion(page, id, label) {
   expect((await snapshot()) !== paused, `${label} ${id}: もう一度押しても動かない`);
 }
 
-// ミッション：始める → 動かせるのは1つのつまみだけ → 目盛りを順に動かすと当たりが出る（欄の高さは変わらない）
-// → 次へ … 5問でクリアと記録 → 閉じると元に戻る。ミッションのないレッスンには入口がない
+// ミッションのないレッスン（基礎）には入口がなく、あるレッスンは準備とミッションを解き切る（checkJobs）
 const WITH_MISSIONS = TOPICS.filter((id) => !BASICS.includes(id));
 async function checkMissions(page, id, label) {
-  const start = page.locator('.mission-start');
   if (!WITH_MISSIONS.includes(id)) {
-    expect((await start.count()) === 0, `${label} ${id}: ミッションのないレッスンに入口がある`);
+    expect((await page.locator('.mission-start').count()) === 0, `${label} ${id}: ミッションのないレッスンに入口がある`);
     return;
   }
-  if (await page.evaluate(() => !!document.querySelector('.job-panel'))) {
-    await checkJobs(page, id, label);
-    return;
-  }
-  await start.click();
-  const stageHeight = await page.evaluate(() => document.querySelector('.stage').getBoundingClientRect().height);
-  for (let n = 1; n <= 5; n++) {
-    const solved = await page.evaluate((expectedHeight) => {
-      const inputs = [...document.querySelectorAll('input[type="range"]')];
-      const free = inputs.filter((i) => !i.disabled);
-      if (free.length !== 1) return { error: `動かせるつまみが ${free.length} 個` };
-      const input = free[0];
-      const steps = Math.round((Number(input.max) - Number(input.min)) / Number(input.step));
-      for (let i = 0; i <= steps; i++) {
-        input.value = String(Number(input.min) + i * Number(input.step));
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        const height = document.querySelector('.stage').getBoundingClientRect().height;
-        if (Math.abs(height - expectedHeight) >= 1) return { error: `ミッション中に図の欄の高さが変わる（${expectedHeight}→${height}）` };
-        if (/NaN|Infinity/.test(document.querySelector('.mission-panel').textContent)) return { error: 'ミッションの欄に NaN' };
-        const panel = document.querySelector('.mission-panel');
-        if (panel.classList.contains('solved')) {
-          const sub = panel.querySelector('.mission-sub');
-          const fits = panel.scrollHeight <= panel.clientHeight + 1 && sub.scrollHeight <= sub.clientHeight + 1;
-          return { ok: true, locked: inputs.every((x) => x.disabled), fits, text: panel.querySelector('.mission-text').textContent };
-        }
-      }
-      return { error: '目盛りを全部動かしても当たらない' };
-    }, stageHeight);
-    expect(solved.ok, `${label} ${id}: ミッション${n}：${solved.error}`);
-    if (!solved.ok) {
-      await page.locator('.mission-quit').click(); // 開いたままだと後の確かめが隠れた部品を待って止まる
-      return;
-    }
-    expect(solved.locked, `${label} ${id}: ミッション${n}で当たった後もつまみが動く`);
-    expect(solved.fits, `${label} ${id}: ミッション${n}「${solved.text}」の理由が欄に収まらない`);
-    await page.locator('.mission-next').click();
-  }
-  const cleared = await page.evaluate(() => ({
-    cleared: document.querySelector('.mission-panel').classList.contains('cleared'),
-    again: !document.querySelector('.mission-again').hidden,
-    record: JSON.parse(localStorage.getItem('denken-zukan:missions') || '{}'),
-  }));
-  expect(cleared.cleared && cleared.again, `${label} ${id}: 5問の後にクリアともう1セットが出ない`);
-  expect(cleared.record[id]?.clears >= 1, `${label} ${id}: クリアが記録されない`);
-  await page.locator('.mission-quit').click();
-  const closed = await page.evaluate(() => ({
-    hidden: document.querySelector('.mission-panel').hidden,
-    enabled: [...document.querySelectorAll('input[type="range"]')].every((i) => !i.disabled),
-    readouts: getComputedStyle(document.querySelector('.readouts')).display !== 'none',
-  }));
-  expect(closed.hidden && closed.enabled && closed.readouts, `${label} ${id}: 閉じても元に戻らない`);
+  await checkJobs(page, id, label);
 }
 
 // ミッション（現場の依頼）と準備：準備があれば先に準備を全段解き（→「ミッションへ」）、続けてミッション5問を解く。
@@ -429,39 +377,14 @@ async function checkJobTextFits(page, id) {
   }
 }
 
-// 幅の狭い iPhone（375px）で、全問題の文面（目標・今の値・当たりの理由）がミッションの欄に収まる
+// 幅の狭い iPhone（375px）で、全レッスンの準備とミッションの文が欄に収まる
 async function checkMissionTextFits() {
   const context = await browser.newContext({ viewport: { width: 375, height: 667 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   for (const id of WITH_MISSIONS) {
     await page.goto(`${base}#/topic/${id}`);
     await page.waitForSelector('svg.figure > *');
-    if (await page.evaluate(() => !!document.querySelector('.job-panel'))) {
-      await checkJobTextFits(page, id);
-      continue;
-    }
-    await page.locator('.mission-start').click();
-    const overflows = await page.evaluate((topicId) => {
-      const topic = Object.values(window).find((v) => v && v.id === topicId && v.missions);
-      const panel = document.querySelector('.mission-panel');
-      const text = panel.querySelector('.mission-text');
-      const sub = panel.querySelector('.mission-sub');
-      const fits = () => panel.scrollHeight <= panel.clientHeight + 1 && sub.scrollHeight <= sub.clientHeight + 1;
-      const bad = [];
-      topic.missions.forEach((template) => {
-        for (const values of template.cases) {
-          const params = { ...Mission.initialParams(topic), ...template.setup(values), [template.free]: template.answer(values) };
-          const result = topic.compute(params);
-          text.innerHTML = template.text(values);
-          sub.innerHTML = `${template.how(values)}　<strong>${template.now(result)}</strong>`;
-          if (!fits()) bad.push(`${text.textContent}（今の値）`);
-          sub.innerHTML = `<strong>○ ぴったり</strong>　${template.reason(values)}`;
-          if (!fits()) bad.push(`${text.textContent}（理由）`);
-        }
-      });
-      return bad;
-    }, id);
-    expect(overflows.length === 0, `375px の ${id}: 欄に収まらない文面 ${overflows.slice(0, 3).join(' / ')}${overflows.length > 3 ? ` ほか${overflows.length - 3}件` : ''}`);
+    await checkJobTextFits(page, id);
   }
   await context.close();
 }
