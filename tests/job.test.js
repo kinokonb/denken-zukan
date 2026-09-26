@@ -12,6 +12,7 @@ const lessons = [
   ['オームの法則', require('../js/plays/ohm.js')],
   ['直列と並列', require('../js/plays/series-parallel.js')],
   ['電力と電力量', require('../js/plays/electric-power.js')],
+  ['RLC直列回路', require('../js/plays/rlc.js')],
 ];
 
 // 再現できる乱数（mulberry32）

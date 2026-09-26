@@ -129,6 +129,41 @@
     return el(parent, 'rect', { x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx: 2, class: `resistor ${cls}` });
   }
 
+  // 交流電源（丸の中に波）。縦の導線の上に置き、下の導線を紙色で消す
+  function acSource(parent, x, y) {
+    const g = el(parent, 'g', { class: 'ac-source' });
+    el(g, 'circle', { cx: x, cy: y, r: 13, class: 'ac-body' });
+    el(g, 'path', { d: `M${x - 8},${y} Q${x - 4},${y - 9} ${x},${y} Q${x + 4},${y + 9} ${x + 8},${y}`, class: 'ac-wave' });
+    return g;
+  }
+
+  // コイル（山が4つの線）。vertical で縦向き。下の導線を紙色で消してから描く
+  function coil(parent, cx, cy, { vertical = false, cls = 'q-reactive' } = {}) {
+    const g = el(parent, 'g', { class: `coil ${cls}` });
+    const bumps = vertical ? 'a5,5 0 0 1 0,10 '.repeat(4) : 'a5,5 0 0 1 10,0 '.repeat(4);
+    if (vertical) {
+      el(g, 'rect', { x: cx - 2, y: cy - 19, width: 4, height: 38, class: 'cut' });
+      el(g, 'path', { d: `M${cx},${cy - 20} ${bumps}`, class: 'coil-line' });
+    } else {
+      el(g, 'rect', { x: cx - 19, y: cy - 2, width: 38, height: 4, class: 'cut' });
+      el(g, 'path', { d: `M${cx - 20},${cy} ${bumps}`, class: 'coil-line' });
+    }
+    return g;
+  }
+
+  // コンデンサ（向かい合う2枚の極板）。vertical で縦の導線の上
+  function capacitor(parent, cx, cy, { vertical = false, cls = 'q-reactive' } = {}) {
+    const g = el(parent, 'g', { class: `capacitor ${cls}` });
+    if (vertical) {
+      el(g, 'rect', { x: cx - 3, y: cy - 4, width: 6, height: 8, class: 'cut' });
+      for (const dy of [-4, 4]) el(g, 'line', { x1: cx - 12, y1: cy + dy, x2: cx + 12, y2: cy + dy, class: 'plate' });
+    } else {
+      el(g, 'rect', { x: cx - 4, y: cy - 3, width: 8, height: 6, class: 'cut' });
+      for (const dx of [-4, 4]) el(g, 'line', { x1: cx + dx, y1: cy - 12, x2: cx + dx, y2: cy + 12, class: 'plate' });
+    }
+    return g;
+  }
+
   // 電流の流れを点で描く（動く層用）。points の道のりに沿って、offset だけ進めた位置に spacing おきに置く
   function flowDots(parent, points, offset, { spacing = 16, cls = 'q-current' } = {}) {
     const segments = [];
@@ -284,7 +319,7 @@
   }
 
   global.Svg = {
-    el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, resistor, flowDots, splitBar,
+    el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, acSource, resistor, coil, capacitor, flowDots, splitBar,
     glowDefs, lamp, heater, fuse, breaker, knifeSwitch, gauge, leads,
   };
 })(this);

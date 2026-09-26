@@ -171,37 +171,6 @@
       { name: '力率', symbol: 'cosφ', value: Notation.number(r.powerFactor, 2), unit: lagOrLead(r.phi) },
       { name: '共振周波数', symbol: 'f_0', value: Notation.number(r.f0, 1), unit: 'Hz' },
     ],
-    // ミッション：共振させる／力率を合わせる（答えはつまみの目盛りの上で当たりになる数だけ）
-    missions: [
-      {
-        free: 'f',
-        cases: [[127, 318], [100, 100], [50, 100], [200, 50], [20, 100], [100, 25], [250, 100], [30, 300], [60, 60], [40, 40]].map(([L, C]) => ({ L, C })),
-        setup: ({ L, C }) => ({ L, C, R: 40 }),
-        answer: ({ L, C }) => Math.round(RlcCircuit.resonantFrequency(L / 1000, C * 1e-6)),
-        text: () => '周波数を動かして、共振させよう',
-        how: ({ L, C }) => `<var>L</var> ${L} mH・<var>C</var> ${C} μF は固定。周波数 <var>f</var> を動かす`,
-        now: (r) => `いま 力率 ${Notation.number(r.powerFactor, 3)}${r.X > 0.5 ? '・遅れ（<var>X</var><sub>L</sub> が大きい）' : r.X < -0.5 ? '・進み（<var>X</var><sub>C</sub> が大きい）' : ''}`,
-        hit: (r) => r.powerFactor >= 0.999,
-        reason: ({ L, C }) => `<var>f</var><sub>0</sub> = 1/(2π√(<var>LC</var>)) ≒ ${Notation.number(RlcCircuit.resonantFrequency(L / 1000, C * 1e-6), 1)} Hz で <var>X</var><sub>L</sub> = <var>X</var><sub>C</sub>。電流が最大、力率 1。`,
-      },
-      {
-        free: 'R',
-        cases: [[127, 318, 0.8], [127, 318, 0.6], [200, 100, 0.8], [200, 100, 0.6], [150, 400, 0.8], [150, 400, 0.6], [50, 50, 0.8], [50, 50, 0.6]].map(([L, C, pf]) => ({ L, C, pf })),
-        setup: ({ L, C }) => ({ L, C, f: 50 }),
-        answer: ({ L, C, pf }) => {
-          const { X } = compute({ R: 1, L, C, f: 50 });
-          return Math.round((Math.abs(X) * pf) / Math.sqrt(1 - pf * pf));
-        },
-        text: ({ pf }) => `力率を ${pf.toFixed(2)} にしよう（±0.01）`,
-        how: ({ L, C }) => `50 Hz・<var>L</var> ${L} mH・<var>C</var> ${C} μF は固定。抵抗 <var>R</var> を動かす`,
-        now: (r) => `いま 力率 ${Notation.number(r.powerFactor, 3)}`,
-        hit: (r, { pf }) => Math.abs(r.powerFactor - pf) <= 0.01,
-        reason: ({ L, C, pf }) => {
-          const { X } = compute({ R: 1, L, C, f: 50 });
-          return `cos<var>φ</var> = <var>R</var>/<var>Z</var>。リアクタンスは約 ${Notation.number(Math.abs(X), 1)} Ω なので、<var>R</var> ≒ ${Notation.number((Math.abs(X) * pf) / Math.sqrt(1 - pf * pf), 1)} Ω で ${pf.toFixed(2)}${X < 0 ? '（進み）' : '（遅れ）'}。`;
-        },
-      },
-    ],
     terms: [
       ['交流', '向きと大きさが周期的に入れかわる電気。家庭のコンセントは交流（東日本 50 Hz・西日本 60 Hz）。'],
       ['周波数 <var>f</var>', '1秒間に波を何回くり返すか。単位は Hz（ヘルツ）。'],
