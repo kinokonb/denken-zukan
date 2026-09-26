@@ -32,7 +32,31 @@
     return { I, P, energyKWh: energyWh / 1000, heatKJ: (P * hours * 3600) / 1000 };
   }
 
-  const DcCircuit = { ohm, seriesResistance, parallelResistance, seriesAndParallel, power };
+  // ---- ミッション（現場の依頼）用。電球の抵抗は明るさで変わらないものとする（本物は冷えている時に小さい） ----
+
+  // 定格 Vr [V]・Ir [A] の電球に、直列の抵抗 R をつないで電池 V で光らせる。明るさは定格の電力に対する比
+  function lampWithSeriesResistor({ V, Vr, Ir, R }) {
+    const lampR = Vr / Ir;
+    const I = V / (R + lampR);
+    const lampV = I * lampR;
+    return { lampR, I, lampV, resistorV: I * R, brightness: (lampV / Vr) ** 2 };
+  }
+
+  // 同じ電球 n 個の並列。どの電球にも電池の電圧がそのままかかり、全体の電流は1個分の n 倍
+  function parallelLamps({ V, lampR, n }) {
+    const each = V / lampR;
+    return { each, I: each * n };
+  }
+
+  // 同じ電球 n 個の直列で、broken 番目（0から）が切れている。電流は流れず、切れ目に電池の電圧が全部かかる
+  function seriesLampsWithBreak({ V, n, broken }) {
+    return { I: 0, voltages: Array.from({ length: n }, (_, i) => (i === broken ? V : 0)) };
+  }
+
+  const DcCircuit = {
+    ohm, seriesResistance, parallelResistance, seriesAndParallel, power,
+    lampWithSeriesResistor, parallelLamps, seriesLampsWithBreak,
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = DcCircuit;
   else global.DcCircuit = DcCircuit;
 })(this);

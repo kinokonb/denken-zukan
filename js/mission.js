@@ -48,10 +48,10 @@
     return { templateIndex, values, fixed, free: param.key, answer, start: pool[Math.floor(rng() * pool.length)] };
   }
 
-  // 1セットを作る。同じ型が3問続かないようにする
-  function buildSet(topic, rng = Math.random, size = SET_SIZE) {
+  // 型ごとの数値の組を混ぜて size 問を選ぶ。同じ型が3問続かないようにする（ミッションの現場の依頼 js/job.js も使う）
+  function pickCases(templates, rng, size) {
     const pool = shuffle(
-      topic.missions.flatMap((template, t) => template.cases.map((values) => ({ t, values }))),
+      templates.flatMap((template, t) => template.cases.map((values) => ({ t, values }))),
       rng,
     );
     const picked = [];
@@ -61,14 +61,19 @@
       const index = pool.findIndex((c) => !repeats(c));
       picked.push(pool.splice(index >= 0 ? index : 0, 1)[0]);
     }
-    return picked.map((c) => makeMission(topic, c.t, c.values, rng));
+    return picked;
+  }
+
+  // 1セットを作る
+  function buildSet(topic, rng = Math.random, size = SET_SIZE) {
+    return pickCases(topic.missions, rng, size).map((c) => makeMission(topic, c.t, c.values, rng));
   }
 
   function isHit(topic, mission, params) {
     return topic.missions[mission.templateIndex].hit(topic.compute(params), mission.values);
   }
 
-  const Mission = { SET_SIZE, gridValues, onGrid, initialParams, buildSet, isHit };
+  const Mission = { SET_SIZE, gridValues, onGrid, initialParams, pickCases, buildSet, isHit };
   if (typeof module !== 'undefined' && module.exports) module.exports = Mission;
   else global.Mission = Mission;
 })(this);

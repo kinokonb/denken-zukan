@@ -162,5 +162,91 @@
     return g;
   }
 
-  global.Svg = { el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, resistor, flowDots, splitBar };
+  // ---- 現場の図（ミッション）の部品 ----
+
+  // 電球の光のにじみ。図の <defs> に1度だけ置き、電球が id で参照する
+  function glowDefs(svg) {
+    const defs = el(svg, 'defs');
+    const gradient = el(defs, 'radialGradient', { id: 'lamp-glow' });
+    el(gradient, 'stop', { offset: '0', style: 'stop-color: var(--q-light); stop-opacity: 0.9' });
+    el(gradient, 'stop', { offset: '0.45', style: 'stop-color: var(--q-light); stop-opacity: 0.35' });
+    el(gradient, 'stop', { offset: '1', style: 'stop-color: var(--q-light); stop-opacity: 0' });
+    return defs;
+  }
+
+  // 電球（JISの丸にバツ）。level は定格の明るさを 1 とした明るさで、光のにじみの大きさと濃さになる。broken は切れた電球
+  function lamp(parent, x, y, { level = 0, broken = false } = {}) {
+    const g = el(parent, 'g', { class: `lamp${broken ? ' broken' : ''}` });
+    const glow = Math.min(level, 1.8);
+    if (glow > 0) el(g, 'circle', { cx: x, cy: y, r: 12 + 24 * glow, fill: 'url(#lamp-glow)', opacity: Math.min(1, 0.25 + 0.75 * glow) });
+    el(g, 'circle', { cx: x, cy: y, r: 10, class: 'lamp-bulb' });
+    if (glow > 0) el(g, 'circle', { cx: x, cy: y, r: 10, class: 'lamp-lit', opacity: Math.min(1, glow) });
+    const d = 10 * Math.SQRT1_2;
+    el(g, 'line', { x1: x - d, y1: y - d, x2: x + d, y2: y + d, class: 'lamp-filament' });
+    if (broken) { // バツの片方が途中で途切れる
+      el(g, 'line', { x1: x - d, y1: y + d, x2: x - 2.5, y2: y + 2.5, class: 'lamp-filament' });
+      el(g, 'line', { x1: x + 3.5, y1: y - 3.5, x2: x + d, y2: y - d, class: 'lamp-filament' });
+    } else {
+      el(g, 'line', { x1: x - d, y1: y + d, x2: x + d, y2: y - d, class: 'lamp-filament' });
+    }
+    return g;
+  }
+
+  // ヒューズ（横の導線の上の細長い箱と、中の細い線）。blown は飛んだヒューズ（中の線が切れて焦げる）
+  function fuse(parent, x, y, { blown = false } = {}) {
+    const g = el(parent, 'g', { class: `fuse${blown ? ' blown' : ''}` });
+    el(g, 'rect', { x: x - 14, y: y - 6, width: 28, height: 12, rx: 2, class: 'fuse-body' });
+    if (blown) {
+      el(g, 'line', { x1: x - 14, y1: y, x2: x - 5, y2: y, class: 'fuse-element' });
+      el(g, 'line', { x1: x + 5, y1: y, x2: x + 14, y2: y, class: 'fuse-element' });
+      el(g, 'circle', { cx: x, cy: y, r: 3.5, class: 'fuse-scorch' });
+    } else {
+      el(g, 'line', { x1: x - 14, y1: y, x2: x + 14, y2: y, class: 'fuse-element' });
+    }
+    return g;
+  }
+
+  // スイッチ（横の導線の上）。on は 0（開いている）〜1（閉じている）で、レバーが倒れていく
+  function knifeSwitch(parent, x, y, { on = 0 } = {}) {
+    const g = el(parent, 'g', { class: 'switch' });
+    el(g, 'rect', { x: x - 12, y: y - 3, width: 24, height: 6, class: 'cut' });
+    const angle = (1 - on) * 0.6;
+    el(g, 'line', { x1: x - 12, y1: y, x2: x - 12 + 24 * Math.cos(angle), y2: y - 24 * Math.sin(angle), class: 'switch-lever' });
+    el(g, 'circle', { cx: x - 12, cy: y, r: 2.6, class: 'switch-post' });
+    el(g, 'circle', { cx: x + 12, cy: y, r: 2.6, class: 'switch-post' });
+    return g;
+  }
+
+  // 針の計器（電流計 'A'、電圧計 'V'）。value を 0〜max の目盛りで指す（振り切れは少しだけ越えて止まる）。
+  // mark は目盛りに付ける印（ヒューズの定格など）で、計器と同じ量の色で描く
+  function gauge(parent, x, y, { value = 0, max, letter, cls = '', mark = null } = {}) {
+    const g = el(parent, 'g', { class: `gauge ${cls}` });
+    const from = Math.PI * 1.15; // 左下
+    const to = -Math.PI * 0.15; // 右下
+    const angleOf = (v) => from + (to - from) * Math.max(-0.04, Math.min(1.06, v / max));
+    const point = (angle, radius) => [x + radius * Math.cos(angle), y - radius * Math.sin(angle)];
+    el(g, 'circle', { cx: x, cy: y, r: 24, class: 'gauge-face' });
+    angleArc(g, x, y, 18, from, to, { cls: 'gauge-scale' });
+    for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+      const angle = from + (to - from) * ratio;
+      const [x1, y1] = point(angle, 18);
+      const [x2, y2] = point(angle, ratio % 0.5 === 0 ? 13 : 15.5);
+      el(g, 'line', { x1, y1, x2, y2, class: 'gauge-tick' });
+    }
+    if (mark !== null) {
+      const [x1, y1] = point(angleOf(mark), 21);
+      const [x2, y2] = point(angleOf(mark), 12);
+      el(g, 'line', { x1, y1, x2, y2, class: 'gauge-mark' });
+    }
+    const [nx, ny] = point(angleOf(value), 17);
+    el(g, 'line', { x1: x, y1: y, x2: nx, y2: ny, class: 'gauge-needle' });
+    el(g, 'circle', { cx: x, cy: y, r: 2.2, class: 'gauge-pivot' });
+    el(g, 'text', { x, y: y + 13, class: 'gauge-letter', 'text-anchor': 'middle', 'dominant-baseline': 'middle' }, letter);
+    return g;
+  }
+
+  global.Svg = {
+    el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, resistor, flowDots, splitBar,
+    glowDefs, lamp, fuse, knifeSwitch, gauge,
+  };
 })(this);

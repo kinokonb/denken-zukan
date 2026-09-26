@@ -17,6 +17,7 @@
   --q-active: #218358;
   --q-reactive: #6550b9;
   --q-mech: #b84700; /* orange-11 を本文に使える濃さへ寄せた値 */
+  --q-light: #f0a500; /* 光・熱（電球の光・火花）。図の光にだけ使い、文字には使わない */
 
   --font-ui: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
   --font-math: "Times New Roman", "Hiragino Mincho ProN", "Yu Mincho", serif;
@@ -38,6 +39,7 @@
     --q-active: #3dd68c;
     --q-reactive: #baa7ff;
     --q-mech: #ffa057;
+    --q-light: #ffd23f;
   }
 }
 
@@ -168,7 +170,7 @@ a { color: inherit; }
   border: 1px solid var(--rule);
   border-radius: var(--radius);
 }
-.figure { display: block; width: 100%; height: auto; max-height: 46svh; margin: 0 auto; color: var(--ink); }
+.figure, .job-scene { display: block; width: 100%; height: auto; max-height: 46svh; margin: 0 auto; color: var(--ink); }
 .caption {
   display: flex;
   align-items: center;
@@ -565,3 +567,110 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .control.locked .control-name::after { content: "（固定）"; font-size: 12px; color: var(--ink-2); }
 .control.free { margin: 0 -10px; padding-left: 10px; padding-right: 10px; border-radius: 10px; background: var(--grid); }
 .cleared-mark { margin-left: 8px; padding: 0 5px; border: 1px solid var(--ink-2); border-radius: 4px; font-size: 11px; letter-spacing: 0; }
+
+/* ---- ミッション（現場の依頼）----
+   依頼を読む → 部品を決める → スイッチ → 図の中で結果が起きる。ミッション中はレッスンの図・説明・つまみをしまい、
+   同じ場所に現場の図と、高さ固定の欄を出す（結果の文が変わっても欄の高さは変わらない）。 */
+.in-job svg.figure, .in-job .caption, .in-job .readouts, .in-job .tries, .in-job .controls, .in-job .mission-entry { display: none; }
+.job-scene[hidden] { display: none; }
+
+.job-panel {
+  display: grid;
+  grid-template-rows: 40px auto 1fr 46px;
+  gap: 4px;
+  height: 236px;
+  margin-top: 10px;
+  padding: 8px 14px 12px;
+  overflow: hidden;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+}
+.job-panel[hidden] { display: none; }
+.job-head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+.job-count { font-weight: 700; letter-spacing: 0.06em; }
+.job-time { font-variant-numeric: tabular-nums; }
+.job-combo { font-weight: 700; color: var(--ink); }
+.job-actions { display: flex; gap: 8px; margin-left: auto; }
+.job-actions button { min-height: 36px; padding: 0 10px; border: 1px solid var(--rule); border-radius: 10px; background: none; color: var(--ink-2); font: inherit; font-size: 13.5px; }
+.job-request { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.45; }
+.job-body { min-height: 0; overflow: hidden; }
+.job-result {
+  display: -webkit-box;
+  margin: 2px 0 0;
+  overflow: hidden;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.job-result strong { color: var(--ink); font-size: 15px; }
+.job-hint { margin: 6px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
+
+.job-dial { display: grid; grid-template-columns: auto 1fr 52px; align-items: center; gap: 10px; min-height: 44px; }
+.job-dial-name { font-size: 13.5px; color: var(--ink-2); }
+.job-dial output { font-size: 16px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; color: var(--q-active); }
+.job-stepper { display: flex; align-items: center; justify-content: center; gap: 18px; min-height: 44px; }
+.job-stepper button {
+  width: 48px;
+  height: 44px;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+}
+.job-stepper button:disabled { border-color: var(--rule); color: var(--ink-3); }
+.job-stepper output { min-width: 56px; font-size: 20px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+
+.job-go { display: flex; gap: 8px; }
+.job-go button { flex: 1; min-height: 46px; border-radius: 10px; font: inherit; font-size: 16px; font-weight: 700; }
+.job-run, .job-next, .job-again { border: none; background: var(--ink); color: var(--paper); }
+.job-run:disabled { background: var(--rule); color: var(--ink-3); }
+.job-retry { border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink); }
+.job-run:active:not(:disabled), .job-next:active, .job-again:active, .job-retry:active { transform: translateY(1px); }
+
+/* 当たったら「ミッション n / 5」の前に丸つけ、はずれは ✗ */
+.job-panel.solved .job-count::before, .job-panel.cleared .job-count::before {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  vertical-align: -6px;
+  border: 2.5px solid var(--ink);
+  border-radius: 50%;
+  animation: stamp 0.18s ease-out;
+}
+.job-panel.failed .job-count::before { content: "✗ "; color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .job-panel.solved .job-count::before, .job-panel.cleared .job-count::before { animation: none; } }
+
+/* 現場の部品 */
+.lamp-bulb { fill: var(--paper); stroke: var(--ink); stroke-width: 1.75; }
+.lamp-lit { fill: var(--q-light); }
+.lamp-filament { stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; }
+.lamp.broken .lamp-filament { stroke: var(--ink-3); }
+.fuse-body { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+.fuse-element { stroke: var(--ink); stroke-width: 1.2; }
+.fuse-scorch { fill: var(--ink-3); opacity: 0.6; }
+.switch .cut { fill: var(--paper); }
+.switch-lever { stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; }
+.switch-post { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+.gauge-face { fill: var(--paper); stroke: var(--ink); stroke-width: 1.75; }
+.gauge-scale { fill: none; stroke: var(--ink-3); stroke-width: 1; }
+.gauge-tick { stroke: var(--ink-3); stroke-width: 1; }
+.gauge-mark { stroke: currentColor; stroke-width: 2.5; }
+.gauge-needle { stroke: var(--ink); stroke-width: 1.8; stroke-linecap: round; }
+.gauge-pivot { fill: var(--ink); }
+.gauge-letter { fill: currentColor; font-size: 10px; font-weight: 700; }
+.lead { fill: none; stroke: var(--ink-2); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.lead-tip { fill: var(--ink); }
+.job-tap { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.job-tap-ring { fill: transparent; stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 3; }
+.job-tap.selected .job-tap-ring { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: none; }
+.spark { stroke: var(--q-light); stroke-width: 1.8; stroke-linecap: round; }
+.smoke { fill: var(--ink-3); }
+.job-pop { fill: var(--ink); font-size: 20px; font-weight: 800; paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }

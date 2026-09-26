@@ -1,4 +1,4 @@
-// ミッションの前提：どの問題も、つまみの目盛りの上に答えがあり、そこで当たりになる。始めの値は当たりでない。
+// ミッション（つまみの型）の前提：どの問題も、つまみの目盛りの上に答えがあり、そこで当たりになる。始めの値は当たりでない。
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
@@ -12,7 +12,6 @@ globalThis.PowerFactor = require('../js/calc/power-factor.js');
 const Mission = require('../js/mission.js');
 const lessons = [
   require('../js/topics/ohm.js').TopicOhm,
-  require('../js/topics/series-parallel.js').TopicSeriesParallel,
   require('../js/topics/electric-power.js').TopicElectricPower,
   require('../js/topics/rlc.js').TopicRlc,
   require('../js/topics/voltage-drop.js').TopicVoltageDrop,

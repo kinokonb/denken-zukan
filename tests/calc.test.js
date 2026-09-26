@@ -125,6 +125,30 @@ test('分圧と分流：4 Ω と 6 Ω の直列に 20 V で 8 V と 12 V、並�
   near(r.parallel.I, r.parallel.I1 + r.parallel.I2, 1e-12, '分流の和');
 });
 
+test('電球と直列の抵抗：12 V で 6 V・0.5 A の電球（12 Ω）に 12 Ω をつなぐと定格、6 Ω では 8 V で明るさ 16/9 倍', () => {
+  const rated = DcCircuit.lampWithSeriesResistor({ V: 12, Vr: 6, Ir: 0.5, R: 12 });
+  near(rated.lampR, 12, 1e-12, '電球の抵抗');
+  near(rated.I, 0.5, 1e-12, '電流');
+  near(rated.lampV, 6, 1e-12, '電球の電圧');
+  near(rated.resistorV, 6, 1e-12, '抵抗の電圧');
+  near(rated.brightness, 1, 1e-12, '定格の明るさ');
+  const over = DcCircuit.lampWithSeriesResistor({ V: 12, Vr: 6, Ir: 0.5, R: 6 });
+  near(over.lampV, 8, 1e-12, '抵抗が小さいと電球の電圧が上がる');
+  near(over.brightness, 16 / 9, 1e-12, '電力は電圧の2乗');
+});
+
+test('電球の並列：12 V で 20 Ω の電球は1個 0.6 A、3個で 1.8 A', () => {
+  const r = DcCircuit.parallelLamps({ V: 12, lampR: 20, n: 3 });
+  near(r.each, 0.6, 1e-12, '1個');
+  near(r.I, 1.8, 1e-12, '3個');
+});
+
+test('電球の直列で1個切れる：電流 0、切れた電球だけに電池の 12 V', () => {
+  const r = DcCircuit.seriesLampsWithBreak({ V: 12, n: 4, broken: 2 });
+  assert.equal(r.I, 0);
+  assert.deepEqual(r.voltages, [0, 0, 12, 0]);
+});
+
 test('電力と電力量：100 V・20 Ω で 5 A・500 W、2 時間で 1 kWh = 3,600 kJ', () => {
   const r = DcCircuit.power({ V: 100, R: 20, hours: 2 });
   near(r.I, 5, 1e-12, 'I');

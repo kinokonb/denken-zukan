@@ -165,6 +165,7 @@
         <div class="stage">
           <figure class="figure-card">
             <svg class="figure" role="img" aria-label="${topic.title}の図"></svg>
+            ${topic.jobs ? JobPlay.sceneHtml() : ''}
             <figcaption class="caption">
               <span class="caption-text" aria-live="polite"></span>
               ${topic.motion ? '<button type="button" class="motion-toggle"></button>' : ''}
@@ -172,10 +173,11 @@
           </figure>
           <dl class="readouts"></dl>
           ${topic.missions ? missionPanelHtml() : ''}
+          ${topic.jobs ? JobPlay.panelHtml() : ''}
         </div>
-        ${topic.missions ? `
+        ${topic.missions || topic.jobs ? `
           <section class="mission-entry">
-            <button type="button" class="mission-start">ミッション ${Mission.SET_SIZE}問に挑戦</button>
+            <button type="button" class="mission-start">ミッション ${(topic.jobs ? Job : Mission).SET_SIZE}問に挑戦</button>
             <span class="mission-record"></span>
           </section>` : ''}
         ${triesHtml(topic)}
@@ -224,6 +226,15 @@
     }
 
     const missionPlay = topic.missions ? createMissionPlay({ topic, params, inputs, setParam, update: () => update() }) : null;
+    // ミッション（現場の依頼）の間は、レッスンの動く図を止めておく
+    if (topic.jobs) {
+      JobPlay.create({
+        view, topic, formatSeconds,
+        records: { load: missionRecords, saveClear: saveMissionClear },
+        onEnter: motion.hold,
+        onLeave: motion.release,
+      });
+    }
 
     for (const input of inputs) {
       input.addEventListener('input', () => {
@@ -489,12 +500,23 @@
 
     if (button) button.addEventListener('click', () => (playing ? pause() : play()));
 
+    let heldWhilePlaying = false;
+
     return {
       time: () => time,
       start() {
         if (!topic.motion) return;
         if (prefersReducedMotion()) showButton();
         else play();
+      },
+      // ほかの画面（ミッション）を出している間だけ止め、戻ったら止める前の状態に戻す
+      hold() {
+        heldWhilePlaying = playing;
+        if (playing) pause();
+      },
+      release() {
+        if (heldWhilePlaying) play();
+        heldWhilePlaying = false;
       },
     };
   }
