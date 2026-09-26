@@ -29,6 +29,7 @@ const ASSETS = [
   'js/topics/voltage-drop.js',
   'js/topics/induction-motor.js',
   'js/topics/power-factor.js',
+  'js/plays/ohm.js',
   'js/plays/series-parallel.js',
   'js/app.js',
 ];

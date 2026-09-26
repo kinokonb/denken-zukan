@@ -11,7 +11,6 @@ globalThis.InductionMotor = require('../js/calc/induction-motor.js');
 globalThis.PowerFactor = require('../js/calc/power-factor.js');
 const Mission = require('../js/mission.js');
 const lessons = [
-  require('../js/topics/ohm.js').TopicOhm,
   require('../js/topics/electric-power.js').TopicElectricPower,
   require('../js/topics/rlc.js').TopicRlc,
   require('../js/topics/voltage-drop.js').TopicVoltageDrop,

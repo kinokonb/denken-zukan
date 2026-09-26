@@ -467,6 +467,7 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .battery .plate { stroke: var(--ink); stroke-width: 2; }
 .battery .plate.thick { stroke-width: 4.5; }
 .resistor { fill: var(--paper); stroke: currentColor; stroke-width: 2; }
+.socket { fill: var(--paper); stroke: var(--ink-3); stroke-width: 1.25; stroke-dasharray: 3 3; }
 .flow circle { fill: currentColor; }
 .bar-part { stroke: var(--paper); stroke-width: 1.5; }
 .bar-part.q-voltage { fill: color-mix(in srgb, var(--q-voltage) 24%, var(--paper)); }

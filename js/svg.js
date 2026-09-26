@@ -113,13 +113,13 @@
     return el(parent, 'path', { d, class: 'wire' });
   }
 
-  // 電池（縦向き、上が＋）。下の導線を紙色で消してから極板を描く
-  function battery(parent, x, y) {
+  // 電池（縦向き、上が＋）。下の導線を紙色で消してから極板を描く。sign を false にすると「+」を書かない（重ねた電池の2個目から）
+  function battery(parent, x, y, { sign = true } = {}) {
     const g = el(parent, 'g', { class: 'battery' });
     el(g, 'rect', { x: x - 3, y: y - 7, width: 6, height: 14, class: 'cut' });
     el(g, 'line', { x1: x - 15, y1: y - 5, x2: x + 15, y2: y - 5, class: 'plate' });
     el(g, 'line', { x1: x - 8, y1: y + 5, x2: x + 8, y2: y + 5, class: 'plate thick' });
-    el(g, 'text', { x: x + 18, y: y - 10, class: 'note faint', 'text-anchor': 'start' }, '+');
+    if (sign) el(g, 'text', { x: x + 18, y: y - 10, class: 'note faint', 'text-anchor': 'start' }, '+');
     return g;
   }
 

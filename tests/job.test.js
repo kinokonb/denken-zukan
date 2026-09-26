@@ -8,6 +8,7 @@ globalThis.Notation = require('../js/notation.js');
 globalThis.DcCircuit = require('../js/calc/dc-circuit.js');
 const Job = require('../js/job.js');
 const lessons = [
+  ['オームの法則', require('../js/plays/ohm.js')],
   ['直列と並列', require('../js/plays/series-parallel.js')],
 ];
 
