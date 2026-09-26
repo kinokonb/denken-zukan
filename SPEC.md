@@ -17,6 +17,7 @@
   - ミッションの候補は、答えがつまみの目盛りに乗る数だけ。足したら `tests/mission.test.js` のレッスン一覧にも入れる。
   - ミッションは理論2が現場の依頼と準備（中身は js/plays/series-parallel.js の jobs・basics、仕組みは js/job.js・js/job-play.js）、ほかは `missions`（旧形式：js/mission.js・app.js の createMissionPlay）。全レッスンを `jobs` にしたら旧形式を消す。
   - 現場の図は毎コマ描き直すので、タップは図の枠（svg）で受け、CSS のアニメは使えない（動きは job-play.js の時間割で作る）。SVG の要素には hidden プロパティがないので `toggleAttribute('hidden', …)` で切り替える。
+  - シェルで `&&` をつないだ途中の grep などが外れると、後ろのファイル作成が黙って走らない（tests/job.test.js が一度できていなかった）。作ったファイルは `ls`・`git status` で確かめてから記録する。
   - 学習系の共通方針 `~/.claude/instructions/learning-engagement.md`（クイズを主役にしない・汎用カードを並べない・予想→操作→結果→理由）に従う。見た目は方眼の紙とペン（ユーザーが「デザイン好き」と確認済み）。
   - 資料の過去問題集は `swift tools/reference.swift …` をサンドボックス外で読む（AGENTS.md の「資料」）。問題文は写さない。
   - 更新は「保存分をすぐ出して裏で入れ替え」なので、配備後の最初の起動は旧版、次の起動から新版（目次の下の版表示で確かめる）。
