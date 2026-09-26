@@ -1,0 +1,326 @@
+/* 電験ずかん
+   色は「量の意味」にだけ使う（電流・電圧・抵抗/有効分・リアクタンス/無効分・機械の量）。
+   それ以外は紙（方眼）と墨の2色で組む。値は Radix Colors の sand / red / blue / green / violet / orange。 */
+
+:root {
+  color-scheme: light dark;
+  --bg: #f1f0ef;
+  --paper: #fdfdfc;
+  --grid: #e9e8e6;
+  --rule: #dad9d6;
+  --ink: #21201c;
+  --ink-2: #63635e;
+  --ink-3: #8d8d86;
+
+  --q-current: #ce2c31;
+  --q-voltage: #0d74ce;
+  --q-active: #218358;
+  --q-reactive: #6550b9;
+  --q-mech: #b84700; /* orange-11 を本文に使える濃さへ寄せた値 */
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  --font-math: "Times New Roman", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --radius: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111110;
+    --paper: #191918;
+    --grid: #222221;
+    --rule: #3b3a37;
+    --ink: #eeeeec;
+    --ink-2: #b5b3ad;
+    --ink-3: #6f6d66;
+
+    --q-current: #ff9592;
+    --q-voltage: #70b8ff;
+    --q-active: #3dd68c;
+    --q-reactive: #baa7ff;
+    --q-mech: #ffa057;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 var(--font-ui);
+}
+
+#view {
+  max-width: 640px;
+  margin: 0 auto;
+  padding:
+    calc(env(safe-area-inset-top) + 8px)
+    calc(env(safe-area-inset-right) + 16px)
+    calc(env(safe-area-inset-bottom) + 40px)
+    calc(env(safe-area-inset-left) + 16px);
+}
+
+var { font-family: var(--font-math); font-style: italic; line-height: 1; }
+sub { font-size: 0.72em; line-height: 0; }
+
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* ---- 量の色 ---- */
+.q-current { --q: var(--q-current); color: var(--q-current); }
+.q-voltage { --q: var(--q-voltage); color: var(--q-voltage); }
+.q-active { --q: var(--q-active); color: var(--q-active); }
+.q-reactive { --q: var(--q-reactive); color: var(--q-reactive); }
+.q-mech { --q: var(--q-mech); color: var(--q-mech); }
+
+/* ---- 目次 ---- */
+.masthead { padding: 24px 0 4px; }
+.overline { margin: 0; font-size: 13px; letter-spacing: 0.14em; color: var(--ink-2); }
+.masthead h1 { margin: 2px 0 6px; font-size: 38px; line-height: 1.15; font-weight: 800; letter-spacing: 0.02em; }
+.tagline { margin: 0 0 16px; font-size: 15px; color: var(--ink-2); }
+
+.color-key { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; }
+.color-key li { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.color-key li::before { content: ""; width: 18px; height: 3px; border-radius: 2px; background: var(--q); }
+
+.subject { margin-top: 30px; }
+.subject-head { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 20px; line-height: 1.3; }
+.subject-summary { font-size: 13px; font-weight: 400; color: var(--ink-2); }
+
+.seal {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+.seal.small { width: 22px; height: 22px; border-width: 1.25px; border-radius: 5px; font-size: 12px; }
+
+.topic-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.topic-link {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 10px 14px 10px 10px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  text-decoration: none;
+}
+.topic-link:active { border-color: var(--ink); }
+.thumb { display: block; width: 108px; height: 90px; }
+.thumb .lbl, .thumb .note { display: none; }
+.topic-title { display: block; font-size: 17px; font-weight: 700; line-height: 1.4; }
+.topic-lead { display: block; margin-top: 2px; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+
+.install-hint {
+  margin: 30px 0 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--ink-3);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.app-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 30px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+/* ---- テーマのページ ---- */
+.topbar { display: flex; align-items: center; justify-content: space-between; margin: 0 -8px; }
+.back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.crumb { display: inline-flex; align-items: center; gap: 6px; padding-right: 8px; font-size: 14px; color: var(--ink-2); }
+
+.topic-head h1 { margin: 4px 0 4px; font-size: 25px; line-height: 1.3; }
+.lead { margin: 0 0 14px; font-size: 15px; color: var(--ink-2); }
+
+/* 図と計算結果。画面が縦に十分ある時は、つまみを操作している間も上に残す */
+.stage { z-index: 1; padding-bottom: 12px; background: var(--bg); }
+@media (min-height: 700px) {
+  .stage { position: sticky; top: env(safe-area-inset-top, 0); }
+}
+
+.figure-card {
+  margin: 0;
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.figure { display: block; width: 100%; height: auto; max-height: 46svh; margin: 0 auto; color: var(--ink); }
+.caption {
+  /* 文章の長さで図の高さが変わると、操作中のつまみが指の下から逃げるので2行分を確保する */
+  min-height: calc(2 * 1.5em + 18px + 1px); /* 2行 + 上下の余白 + 上の線 */
+  padding: 9px 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.readouts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 10px 0 0;
+  overflow: hidden;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+@media (min-width: 560px) {
+  .readouts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.readout { min-width: 0; padding: 7px 12px 8px; background: var(--paper); }
+.readout dt { overflow: hidden; font-size: 12px; color: var(--ink-2); white-space: nowrap; text-overflow: ellipsis; }
+.readout dd { margin: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.readout .value { font-size: 20px; font-weight: 650; color: var(--q, var(--ink)); }
+.readout .unit { margin-left: 4px; font-size: 13px; color: var(--ink-2); }
+.symbol { margin-left: 6px; color: var(--ink-2); }
+
+.controls {
+  padding: 4px 16px 14px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.control {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: 12px;
+  padding-top: 10px;
+}
+.control-name { font-size: 14.5px; }
+.control output { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.control input { grid-column: 1 / -1; }
+
+input[type="range"] {
+  --fill: 50%;
+  width: 100%;
+  height: 40px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, var(--ink) var(--fill), var(--rule) var(--fill));
+}
+input[type="range"]::-webkit-slider-thumb {
+  width: 28px;
+  height: 28px;
+  margin-top: -11px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="range"]::-moz-range-track { height: 6px; border-radius: 3px; background: var(--rule); }
+input[type="range"]::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--ink); }
+input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 2px solid var(--ink); border-radius: 50%; background: var(--paper); }
+input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
+
+.presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.presets button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--ink);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14.5px;
+}
+.presets button:active { background: var(--ink); color: var(--paper); }
+.presets .reset { margin-left: auto; border-color: var(--rule); color: var(--ink-2); }
+.conditions { margin: 12px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--ink-2); }
+
+.notes { margin-top: 30px; }
+.notes h2 { margin: 26px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--rule); font-size: 17px; }
+.notes p, .notes li { font-size: 15.5px; line-height: 1.8; }
+.notes p { margin: 0 0 8px; }
+.notes ul { margin: 0; padding-left: 1.2em; }
+.notes .formulas {
+  list-style: none;
+  padding: 10px 14px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+}
+.formulas li { font-family: var(--font-math); font-size: 16.5px; line-height: 2; }
+
+.next a {
+  display: block;
+  margin-top: 34px;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  font-weight: 700;
+  text-decoration: none;
+}
+.next-label { display: block; font-size: 12.5px; font-weight: 400; color: var(--ink-2); }
+
+/* ---- 図（SVG） ---- */
+.paper-sheet { fill: var(--paper); }
+.paper line { stroke: var(--grid); stroke-width: 1; }
+
+.vec line { stroke: currentColor; stroke-linecap: round; }
+.vec polygon { fill: currentColor; }
+.ink { color: var(--ink); }
+.faint-ink { color: var(--ink-3); }
+.faded { opacity: 0.45; }
+
+.lbl, .note {
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  fill: currentColor;
+}
+.lbl { font-family: var(--font-math); font-size: 15px; font-style: italic; }
+.lbl-sub { font-size: 0.72em; font-style: normal; }
+.note { font-family: var(--font-ui); font-size: 11px; }
+.note.faint { fill: var(--ink-2); }
+.note.on-bar { stroke: none; fill: var(--ink); font-size: 11.5px; font-weight: 600; }
+
+.guide { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 3; }
+.guide.axis { stroke: var(--ink-2); stroke-dasharray: none; }
+.guide[class*="q-"] { stroke: currentColor; opacity: 0.7; }
+.arc { fill: none; stroke-width: 1.25; }
+.arc-guide { stroke: var(--ink-3); stroke-dasharray: 2 4; }
+.arc-angle { stroke: var(--ink); }
+.bracket { fill: none; stroke: var(--ink-2); stroke-width: 1; }
+.curve { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.curve.thick { stroke-width: 3; }
+.curve.reference { stroke: var(--ink-3); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.dot { fill: currentColor; stroke: var(--paper); stroke-width: 2; }
+.ring { fill: var(--paper); stroke: currentColor; stroke-width: 2; }
+.bar { stroke: currentColor; stroke-width: 1; }
+.bar.q-mech { fill: color-mix(in srgb, var(--q-mech) 22%, var(--paper)); }
+.bar.loss { fill: var(--grid); stroke: var(--ink-3); }

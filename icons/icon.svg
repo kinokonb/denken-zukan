@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 方眼の紙に、有効分（緑）・無効分（紫）・合成（青）の三角形 -->
+  <rect width="512" height="512" fill="#fdfdfc"/>
+  <g stroke="#e9e8e6" stroke-width="3">
+    <path d="M64 0V512M128 0V512M192 0V512M256 0V512M320 0V512M384 0V512M448 0V512"/>
+    <path d="M0 64H512M0 128H512M0 192H512M0 256H512M0 320H512M0 384H512M0 448H512"/>
+  </g>
+  <path d="M128 368 A58 58 0 0 0 176 342" fill="none" stroke="#21201c" stroke-width="6"/>
+  <g stroke-linecap="round">
+    <line x1="116" y1="376" x2="346" y2="376" stroke="#218358" stroke-width="24"/>
+    <polygon points="404,376 340,344 340,408" fill="#218358"/>
+    <line x1="392" y1="376" x2="392" y2="200" stroke="#6550b9" stroke-width="24"/>
+    <polygon points="392,142 360,206 424,206" fill="#6550b9"/>
+    <line x1="116" y1="376" x2="344" y2="178" stroke="#0d74ce" stroke-width="28"/>
+    <polygon points="392,136 323,154 365,202" fill="#0d74ce"/>
+  </g>
+</svg>

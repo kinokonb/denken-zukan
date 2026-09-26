@@ -71,3 +71,7 @@ captures/
 .externalNativeBuild/
 .cxx/
 **/build/
+
+# Claude Code local files
+.claude/settings.local.json
+CLAUDE.local.md
