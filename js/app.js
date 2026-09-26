@@ -69,10 +69,7 @@
           <li class="q-mech">機械の量</li>
         </ul>
       </header>
-      <section class="start">
-        <p><strong>はじめての人へ</strong>　電験は理論が土台。理論1から順に進むと、ほかの科目の図も読めるようになる。</p>
-        <a class="start-link" href="#/topic/${ALL_TOPICS[0].topic.id}">理論1から始める ›</a>
-      </section>
+      ${startHtml()}
       ${SUBJECTS.map(subjectHtml).join('')}
       <p class="install-hint" hidden>ホーム画面に追加すると、アプリのように全画面で開けて、ネットがなくても確実に使えます。共有ボタン →「ホーム画面に追加」。</p>
       <footer class="app-footer">
@@ -85,6 +82,32 @@
     }
     view.querySelector('.install-hint').hidden = !shouldSuggestInstall();
     showOfflineState();
+  }
+
+  // 前回開いたレッスンがあれば、それを1タップで開けるようにする（端末のブラウザにだけ覚える）
+  const LAST_LESSON_KEY = 'denken-zukan:last-lesson';
+
+  function rememberLesson(id) {
+    try { localStorage.setItem(LAST_LESSON_KEY, id); } catch { /* 保存できない開き方でも使える */ }
+  }
+
+  function lastLesson() {
+    try { return ALL_TOPICS.find((entry) => entry.topic.id === localStorage.getItem(LAST_LESSON_KEY)) || null; } catch { return null; }
+  }
+
+  function startHtml() {
+    const last = lastLesson();
+    if (last) {
+      return `
+        <section class="start">
+          <a class="start-link" href="#/topic/${last.topic.id}"><span class="start-label">前回の続き</span>${last.subject.name}${last.number}　${last.topic.title} ›</a>
+        </section>`;
+    }
+    return `
+      <section class="start">
+        <p><strong>はじめての人へ</strong>　電験は理論が土台。理論1から順に進むと、ほかの科目の図も読めるようになる。</p>
+        <a class="start-link" href="#/topic/${ALL_TOPICS[0].topic.id}"><span class="start-label">はじめる</span>理論1　${ALL_TOPICS[0].topic.title} ›</a>
+      </section>`;
   }
 
   function subjectHtml(subject) {
@@ -123,6 +146,7 @@
 
   function renderTopic({ subject, unit, topic, number }) {
     document.title = `${topic.title} – 電験ずかん`;
+    rememberLesson(topic.id);
     const params = initialParams(topic);
     const index = ALL_TOPICS.findIndex((entry) => entry.topic === topic);
     const next = ALL_TOPICS[(index + 1) % ALL_TOPICS.length];
@@ -207,16 +231,18 @@
       update();
     });
 
-    // やってみよう：初期値から指定の値に変えて、見るところを出す
+    // やってみよう：先に予想を選ぶと、初期値から指定の値に変えて図を動かし、当たり外れと理由を出す
     view.querySelector('.tries')?.addEventListener('click', (event) => {
-      const button = event.target.closest('button[data-try]');
+      const button = event.target.closest('button[data-guess], button[data-replay]');
       if (!button) return;
-      const step = topic.tries[Number(button.dataset.try)];
+      const item = button.closest('li');
+      const step = topic.tries[Number(item.dataset.try)];
       for (const [key, value] of Object.entries({ ...initialParams(topic), ...step.set })) setParam(key, value);
       update();
-      const item = button.closest('li');
-      item.classList.add('done');
+      if (button.hasAttribute('data-replay')) return;
+      markAnswer(item, Number(button.dataset.guess), step.answer, step.choices, 'guess');
       item.querySelector('.try-look').hidden = false;
+      item.querySelector('.replay').hidden = false;
     });
 
     // 確かめ問題：1回選んだら答えと理由を出して、その問題は締める
@@ -225,13 +251,9 @@
       if (!button) return;
       const item = button.closest('.question');
       const question = topic.quiz[Number(item.dataset.question)];
-      const chosen = Number(button.dataset.choice);
-      const buttons = [...item.querySelectorAll('button[data-choice]')];
-      buttons.forEach((b) => { b.disabled = true; });
-      buttons[question.answer].classList.add('correct');
-      button.classList.add('chosen');
+      markAnswer(item, Number(button.dataset.choice), question.answer, question.choices, 'choice');
       const answer = item.querySelector('.answer');
-      answer.innerHTML = `${chosen === question.answer ? '<strong>✓ 正解</strong>' : `<strong>✗ ちがいます</strong>（正解は「${question.choices[question.answer]}」）`}　${question.why}`;
+      answer.insertAdjacentHTML('beforeend', `　${question.why}`);
       answer.hidden = false;
     });
 
@@ -290,6 +312,17 @@
     };
   }
 
+  // 丸つけ：選んだものと正解に印をつけ、その問いは締める。結果の一言は .verdict に出す
+  function markAnswer(item, chosen, correct, choices, attribute) {
+    const buttons = [...item.querySelectorAll(`button[data-${attribute}]`)];
+    buttons.forEach((b) => { b.disabled = true; });
+    buttons[correct].classList.add('correct');
+    buttons[chosen].classList.add('chosen');
+    const verdict = item.querySelector('.verdict');
+    verdict.innerHTML = chosen === correct ? '<strong>○ 当たり</strong>' : `<strong>✗ 実は「${choices[correct]}」</strong>`;
+    item.classList.add(chosen === correct ? 'hit' : 'miss');
+  }
+
   // ことばは図を遠ざけないよう、用語名だけを見せてたたんでおく（押すと開く）
   function termsHtml(topic) {
     if (!topic.terms) return '';
@@ -301,16 +334,23 @@
       </details>`;
   }
 
+  const MARKS = ['①', '②', '③', '④'];
+
+  function choicesHtml(choices, attribute) {
+    return `<div class="choices">${choices.map((choice, j) => `<button type="button" data-${attribute}="${j}"><span class="mark" aria-hidden="true">${MARKS[j]}</span>${choice}</button>`).join('')}</div>`;
+  }
+
   function triesHtml(topic) {
     if (!topic.tries) return '';
     return `
       <section class="tries">
-        <h2>やってみよう</h2>
+        <h2>やってみよう<span class="section-note">予想を選ぶと、図がその通りに動く</span></h2>
         <ol>${topic.tries.map((step, i) => `
-          <li>
+          <li data-try="${i}">
             <p class="try-text">${step.text}</p>
-            <button type="button" data-try="${i}">やってみる</button>
-            <p class="try-look" hidden><span class="look-label">見るところ</span>${step.look}</p>
+            ${choicesHtml(step.choices, 'guess')}
+            <p class="try-look" hidden><span class="verdict"></span>　${step.look}</p>
+            <button type="button" class="replay" data-replay hidden>もう一度この状態にする</button>
           </li>`).join('')}
         </ol>
       </section>`;
@@ -320,12 +360,12 @@
     if (!topic.quiz) return '';
     return `
       <section class="quiz">
-        <h2>確かめ問題</h2>
+        <h2>確かめ問題<span class="section-note">ふり返り</span></h2>
         <ol>${topic.quiz.map((question, i) => `
           <li class="question" data-question="${i}">
             <p class="q">${question.q}</p>
-            <div class="choices">${question.choices.map((choice, j) => `<button type="button" data-choice="${j}">${choice}</button>`).join('')}</div>
-            <p class="answer" hidden aria-live="polite"></p>
+            ${choicesHtml(question.choices, 'choice')}
+            <p class="answer" hidden aria-live="polite"><span class="verdict"></span></p>
           </li>`).join('')}
         </ol>
       </section>`;

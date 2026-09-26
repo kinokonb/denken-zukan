@@ -103,9 +103,9 @@
       ['三相3線式', '3本の電線で送る方式。送電線や高圧の配電線の基本。'],
     ],
     tries: [
-      { text: '負荷電流 <var>I</var> を 100 A → 200 A（2倍）にする', set: { I: 200 }, look: '<var>RI</var>・<var>jXI</var> の矢印が2倍に伸び、電圧降下も約 346 V → 約 693 V と2倍になる。降下は電流に比例する。' },
-      { text: '力率を 0.8 → 1.0 にする', set: { cos: 1 }, look: '電流 <var>I</var> が <var>E</var><sub>r</sub> と同じ向きになり、<var>jXI</var> は真上を向く。横の成分に効くのは <var>RI</var> だけになり、降下は約 173 V に減る。' },
-      { text: '力率を 0.8 → 0.6 にする', set: { cos: 0.6 }, look: '電流の遅れ <var>θ</var> が大きくなり、<var>jXI</var> が横向きに近づく。<var>X</var> sin<var>θ</var> の分が増えて、降下は約 381 V に増える。' },
+      { text: '負荷電流 <var>I</var> を 100 A → 200 A（2倍）にすると、電圧降下は？', choices: ['半分', 'そのまま', '2倍', '4倍'], answer: 2, set: { I: 200 }, look: '<var>RI</var>・<var>jXI</var> の矢印が2倍に伸び、電圧降下も約 346 V → 約 693 V と2倍になる。降下は電流に比例する。' },
+      { text: '力率を 0.8 → 1.0 にすると、電圧降下は？', choices: ['減る', '変わらない', '増える'], answer: 0, set: { cos: 1 }, look: '電流 <var>I</var> が <var>E</var><sub>r</sub> と同じ向きになり、<var>jXI</var> は真上を向く。横の成分に効くのは <var>RI</var> だけになり、降下は約 173 V に減る。' },
+      { text: '力率を 0.8 → 0.6 に下げると、電圧降下は？', choices: ['減る', '変わらない', '増える'], answer: 2, set: { cos: 0.6 }, look: '電流の遅れ <var>θ</var> が大きくなり、<var>jXI</var> が横向きに近づく。<var>X</var> sin<var>θ</var> の分が増えて、降下は約 381 V に増える。' },
     ],
     quiz: [
       { q: '三相3線式で <var>I</var> = 100 A、<var>R</var> = 1 Ω、<var>X</var> = 0 Ω、力率 1 のとき、電圧降下はおよそ？', choices: ['100 V', '173 V', '200 V', '300 V'], answer: 1, why: '<var>v</var> ≒ √3 <var>I</var>(<var>R</var> cos<var>θ</var> + <var>X</var> sin<var>θ</var>) = 1.73 × 100 × 1 ≒ 173 V。' },

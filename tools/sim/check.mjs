@@ -99,18 +99,25 @@ async function run(colorScheme) {
         expect(state.captionFits, `${colorScheme} ${id}: ${state.key}=${end} で説明が2行に収まらない`);
       }
     }
-    // やってみよう：押すと図が変わり（NaNなし・図の高さそのまま）、見るところが出る
-    const tries = await page.locator('.tries button[data-try]').count();
+    // やってみよう：予想を選ぶと図が変わり（NaNなし・図の高さそのまま）、当たり外れと理由が出て、その問いは締まる
+    const tries = await page.locator('.tries li[data-try]').count();
     expect(tries >= 2, `${colorScheme} ${id}: やってみようが2つ未満`);
     for (let i = 0; i < tries; i++) {
-      await page.locator('.tries button[data-try]').nth(i).click();
-      const state = await page.evaluate((index) => ({
-        nan: /NaN|Infinity/.test(document.querySelector('svg.figure').outerHTML + document.querySelector('.readouts').textContent),
-        look: !document.querySelectorAll('.try-look')[index].hidden,
-        stage: document.querySelector('.stage').getBoundingClientRect().height,
-      }), i);
+      await page.locator('.tries li[data-try]').nth(i).locator('button[data-guess]').last().click();
+      const state = await page.evaluate((index) => {
+        const item = document.querySelectorAll('.tries li[data-try]')[index];
+        return {
+          nan: /NaN|Infinity/.test(document.querySelector('svg.figure').outerHTML + document.querySelector('.readouts').textContent),
+          look: !item.querySelector('.try-look').hidden && item.querySelector('.verdict').textContent.length > 0,
+          closed: [...item.querySelectorAll('button[data-guess]')].every((b) => b.disabled) && item.querySelectorAll('button.correct').length === 1,
+          replay: !item.querySelector('.replay').hidden,
+          stage: document.querySelector('.stage').getBoundingClientRect().height,
+        };
+      }, i);
       expect(!state.nan, `${colorScheme} ${id}: やってみよう${i + 1}で NaN`);
-      expect(state.look, `${colorScheme} ${id}: やってみよう${i + 1}で見るところが出ない`);
+      expect(state.look, `${colorScheme} ${id}: やってみよう${i + 1}で当たり外れと理由が出ない`);
+      expect(state.closed, `${colorScheme} ${id}: やってみよう${i + 1}の丸つけが正しくない`);
+      expect(state.replay, `${colorScheme} ${id}: やってみよう${i + 1}で「もう一度」が出ない`);
       expect(Math.abs(state.stage - layout.stage) < 1, `${colorScheme} ${id}: やってみよう${i + 1}で図の高さが変わる`);
     }
     // 確かめ問題：選ぶと答えが出て、その問題のボタンは押せなくなる
@@ -137,6 +144,11 @@ async function run(colorScheme) {
       expect(!nan, `${colorScheme} ${id}: ボタン${i + 1}で NaN`);
     }
   }
+
+  // 目次に、最後に開いたレッスンが「前回の続き」として出る
+  await page.goto(base);
+  const resume = await page.locator('.start-link').evaluate((a) => ({ text: a.textContent, href: a.getAttribute('href') }));
+  expect(resume.text.includes('前回の続き') && resume.href === `#/topic/${TOPICS[TOPICS.length - 1]}`, `${colorScheme}: 目次に前回の続きが出ない（${resume.text}）`);
 
   // 通信を切って開き直しても表示できる
   await context.setOffline(true);

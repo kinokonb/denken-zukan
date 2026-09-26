@@ -346,11 +346,13 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .rotor { fill: color-mix(in srgb, var(--q-mech) 16%, var(--paper)); stroke: currentColor; stroke-width: 1.5; }
 .rotor-bar { stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
 
-/* ---- レッスンの形：ことば・やってみよう・確かめ問題・試験では ---- */
+/* ---- レッスンの形：ことば・やってみよう・確かめ問題・試験では ----
+   カードを並べず、1枚の紙を罫線で区切る（ノートと丸つけ）。 */
 .tries, .quiz, .exam { margin-top: 26px; }
-.tries h2, .quiz h2, .exam h2 { margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--rule); font-size: 17px; }
 .tries { margin: 4px 0 14px; }
-.tries h2 { border-bottom: none; }
+.tries h2, .quiz h2, .exam h2 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; font-size: 17px; }
+.exam h2 { padding-bottom: 4px; border-bottom: 1px solid var(--rule); }
+.section-note { font-size: 12.5px; font-weight: 400; color: var(--ink-2); }
 
 .terms { margin: 0 0 14px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; }
 .terms summary {
@@ -372,45 +374,85 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .term dt { font-weight: 700; font-size: 15px; }
 .term dd { margin: 2px 0 0; font-size: 14.5px; line-height: 1.7; color: var(--ink-2); }
 
-.tries ol, .quiz ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
-.tries li {
-  counter-increment: step;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px 12px;
-  align-items: center;
-  padding: 12px 14px;
+/* 1枚の紙に、左の余白線と罫線 */
+.tries ol, .quiz ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
   background: var(--paper);
   border: 1px solid var(--rule);
-  border-radius: 12px;
+  border-radius: var(--radius);
+  overflow: hidden;
 }
-.tries li.done { border-color: var(--ink-3); }
-.try-text { margin: 0; font-size: 15px; line-height: 1.6; }
-.try-text::before { content: counter(step) "．"; font-weight: 700; }
-.tries button, .choices button {
+.tries li, .question {
+  counter-increment: step;
+  position: relative;
+  padding: 12px 14px 12px 44px;
+  border-top: 1px solid var(--rule);
+}
+.tries li:first-child, .question:first-child { border-top: none; }
+.tries li::before, .question::before {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: 34px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.tries li::before { content: counter(step); }
+.question::before { content: "問" counter(step); font-size: 12.5px; top: 15px; }
+.tries ol::before, .quiz ol::before { content: none; }
+.tries li::after, .question::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 34px;
+  border-left: 1px solid var(--rule);
+}
+
+.try-text, .q { margin: 0 0 6px; font-size: 15.5px; line-height: 1.7; }
+
+/* 選択肢は ①②③ の印つきの文字。選ぶと正解を丸で囲み、はずれは線で消す */
+.choices { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 0 -6px; }
+.choices button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--ink);
-  border-radius: 10px;
-  background: var(--paper);
+  padding: 0 10px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 14.5px;
+  font-size: 15px;
+  cursor: pointer;
 }
-.tries button:active, .choices button:active:not(:disabled) { background: var(--ink); color: var(--paper); }
-.try-look { grid-column: 1 / -1; margin: 0; font-size: 14.5px; line-height: 1.7; }
-.look-label { display: inline-block; margin-right: 8px; padding: 0 6px; border: 1px solid var(--ink); border-radius: 5px; font-size: 12px; font-weight: 700; }
+.choices button .mark { font-weight: 700; }
+.choices button:active:not(:disabled) { background: var(--grid); }
+.choices button:disabled { color: var(--ink-3); cursor: default; }
+.choices button.correct { border-color: var(--ink); color: var(--ink); font-weight: 700; }
+.choices button.chosen:not(.correct) { color: var(--ink-2); text-decoration: line-through; }
+.choices button.chosen:not(.correct)::after { content: "✗"; margin-left: 2px; text-decoration: none; }
 
-.question { padding: 12px 14px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; counter-increment: step; }
-.q { margin: 0 0 10px; font-size: 15.5px; line-height: 1.7; }
-.q::before { content: "問" counter(step) "　"; font-weight: 700; }
-.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.choices button { text-align: left; border-color: var(--rule); }
-.choices button:disabled { color: var(--ink-2); opacity: 1; }
-.choices button.correct { border: 2px solid var(--ink); color: var(--ink); font-weight: 700; }
-.choices button.correct::before { content: "✓ "; }
-.choices button.chosen:not(.correct)::before { content: "✗ "; }
-.answer { margin: 10px 0 0; font-size: 14.5px; line-height: 1.7; }
+.try-look, .answer { margin: 8px 0 0; font-size: 14.5px; line-height: 1.75; }
+.verdict strong { font-size: 15px; }
+.replay {
+  margin-top: 6px;
+  min-height: 36px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13.5px;
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 .exam p, .exam li { font-size: 15.5px; line-height: 1.8; }
 .exam p { margin: 0 0 8px; }
@@ -442,16 +484,17 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 }
 .start p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.7; }
 .start-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 16px;
+  display: block;
+  padding: 10px 16px 12px;
   border-radius: 10px;
   background: var(--ink);
   color: var(--paper);
   font-weight: 700;
+  font-size: 16px;
+  line-height: 1.45;
   text-decoration: none;
 }
+.start-label { display: block; font-size: 12px; font-weight: 400; letter-spacing: 0.08em; opacity: 0.8; }
 .unit-head { margin: 14px 0 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-2); }
 .subject-head + .unit-head { margin-top: 4px; }
 .topic-number { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--ink-2); }

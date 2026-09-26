@@ -180,9 +180,9 @@
       ['共振', '<var>X</var><sub>L</sub> と <var>X</var><sub>C</sub> がちょうど打ち消し合い、電流がいちばん大きくなる状態。'],
     ],
     tries: [
-      { text: '周波数 <var>f</var> を 50 Hz → 100 Hz にする', set: { f: 100 }, look: 'コイルの <var>X</var><sub>L</sub> は2倍、コンデンサの <var>X</var><sub>C</sub> は半分。<var>V</var><sub>L</sub>（上向き）が伸びて <var>V</var><sub>C</sub>（下向き）が縮み、電流の遅れ <var>φ</var> が 36.8° → 約62° に大きくなる。' },
-      { text: '周波数を 25 Hz にして共振させる', set: { f: 25 }, look: '<var>V</var><sub>L</sub> と <var>V</var><sub>C</sub> が同じ長さで打ち消し合い、<var>V</var> が <var>V</var><sub>R</sub> と重なる。電流は最大（共振曲線の山）、力率は 1。右の波形も電圧と電流の山がそろう。' },
-      { text: '共振のまま、抵抗 <var>R</var> を 40 Ω → 5 Ω にする', set: { f: 25, R: 5 }, look: '電流が 20 A に増え、<var>V</var><sub>L</sub>・<var>V</var><sub>C</sub> は約 400 V と電源の 100 V より大きくなる（矢印の縮尺が変わるので |V| の円が小さく見える）。共振曲線の山も鋭くなる。' },
+      { text: '周波数 <var>f</var> を 50 Hz → 100 Hz にすると、電流の遅れ <var>φ</var> は？', choices: ['小さくなる', '変わらない', '大きくなる'], answer: 2, set: { f: 100 }, look: 'コイルの <var>X</var><sub>L</sub> は2倍、コンデンサの <var>X</var><sub>C</sub> は半分。<var>V</var><sub>L</sub>（上向き）が伸びて <var>V</var><sub>C</sub>（下向き）が縮み、電流の遅れ <var>φ</var> が 36.8° → 約62° に大きくなる。' },
+      { text: '周波数を 25 Hz にして共振させると、電流は？', choices: ['いちばん小さくなる', 'いちばん大きくなる', '0 になる'], answer: 1, set: { f: 25 }, look: '<var>V</var><sub>L</sub> と <var>V</var><sub>C</sub> が同じ長さで打ち消し合い、<var>V</var> が <var>V</var><sub>R</sub> と重なる。電流は最大（共振曲線の山）、力率は 1。右の波形も電圧と電流の山がそろう。' },
+      { text: '共振のまま抵抗 <var>R</var> を 40 Ω → 5 Ω にすると、コイルの電圧 <var>V</var><sub>L</sub> は電源の 100 V と比べて？', choices: ['小さい', '同じ', '大きい'], answer: 2, set: { f: 25, R: 5 }, look: '電流が 20 A に増え、<var>V</var><sub>L</sub>・<var>V</var><sub>C</sub> は約 400 V と電源の 100 V より大きくなる（矢印の縮尺が変わるので |V| の円が小さく見える）。共振曲線の山も鋭くなる。' },
     ],
     quiz: [
       { q: '<var>R</var> = 3 Ω と <var>X</var><sub>L</sub> = 4 Ω の直列回路のインピーダンス <var>Z</var> は？', choices: ['1 Ω', '5 Ω', '7 Ω', '12 Ω'], answer: 1, why: '<var>Z</var> = √(3² + 4²) = 5 Ω。向きが90°ちがうので、そのまま足して 7 Ω にはならない。' },

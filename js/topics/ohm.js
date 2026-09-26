@@ -88,9 +88,9 @@
       ['コンダクタンス <var>G</var>', '電流の流れやすさ。抵抗の逆数 <var>G</var> = 1/<var>R</var>。単位は S（ジーメンス）。'],
     ],
     tries: [
-      { text: '電圧 <var>V</var> を 12 V → 24 V（2倍）にする', set: { V: 24 }, look: '電流が 2 A → 4 A と2倍になり、赤い点も2倍の速さで流れる。グラフの点は同じ直線の上を右上へ動く。' },
-      { text: '抵抗 <var>R</var> を 6 Ω → 12 Ω（2倍）にする', set: { R: 12 }, look: '電流は 2 A → 1 A と半分になり、点の流れもゆっくりになる。グラフの直線がねる（傾き 1/<var>R</var> が小さくなる）。' },
-      { text: '<var>V</var> と <var>R</var> を両方2倍（24 V・12 Ω）にする', set: { V: 24, R: 12 }, look: '電流は 2 A のまま。<var>I</var> = <var>V</var>/<var>R</var> なので、<var>V</var> と <var>R</var> が同じ倍率なら <var>I</var> は変わらない。' },
+      { text: '電圧 <var>V</var> を 12 V → 24 V（2倍）にすると、電流 <var>I</var> は？', choices: ['半分', 'そのまま', '2倍', '4倍'], answer: 2, set: { V: 24 }, look: '電流が 2 A → 4 A と2倍になり、赤い点も2倍の速さで流れる。グラフの点は同じ直線の上を右上へ動く。' },
+      { text: '抵抗 <var>R</var> を 6 Ω → 12 Ω（2倍）にすると、電流 <var>I</var> は？', choices: ['半分', 'そのまま', '2倍'], answer: 0, set: { R: 12 }, look: '電流は 2 A → 1 A と半分になり、点の流れもゆっくりになる。グラフの直線がねる（傾き 1/<var>R</var> が小さくなる）。' },
+      { text: '<var>V</var> と <var>R</var> を両方2倍（24 V・12 Ω）にすると、電流 <var>I</var> は？', choices: ['半分', 'そのまま', '2倍', '4倍'], answer: 1, set: { V: 24, R: 12 }, look: '電流は 2 A のまま。<var>I</var> = <var>V</var>/<var>R</var> なので、<var>V</var> と <var>R</var> が同じ倍率なら <var>I</var> は変わらない。' },
     ],
     quiz: [
       { q: '12 V の電池に 4 Ω の抵抗をつなぐと、流れる電流は？', choices: ['0.33 A', '3 A', '16 A', '48 A'], answer: 1, why: '<var>I</var> = <var>V</var>/<var>R</var> = 12 ÷ 4 = 3 A。' },

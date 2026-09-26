@@ -101,10 +101,10 @@
       ['進相コンデンサ', '負荷の遅れの無効電力を打ち消すために、負荷と並列につなぐコンデンサ。'],
     ],
     tries: [
-      { text: 'コンデンサをはずす（<var>Q</var><sub>c</sub> = 0）', set: { Qc: 0 }, look: '三角形は <var>P</var> = 400 kW・<var>Q</var> = 300 kvar・<var>S</var> = 500 kV·A（4 : 3 : 5）。力率は 0.8。' },
-      { text: '<var>Q</var><sub>c</sub> を 168 kvar にする', set: { Qc: 168 }, look: '<var>Q</var> が 132 kvar に減り、<var>S</var> は約 421 kV·A、力率は 0.95。<var>P</var> は 400 kW のまま。電流は約 84% に減る。' },
-      { text: '<var>Q</var><sub>c</sub> を 300 kvar にする', set: { Qc: 300 }, look: '<var>Q</var> が 0 になり <var>S</var> = <var>P</var>、力率 1。電流は 80%、線路損失は 64% になる。' },
-      { text: '<var>Q</var><sub>c</sub> を 400 kvar にする（入れすぎ）', set: { Qc: 400 }, look: '三角形が下向きになり、進み力率（約 0.97）。入れすぎると力率はかえって下がる。' },
+      { text: 'コンデンサをはずす（<var>Q</var><sub>c</sub> = 0）と、力率は？', choices: ['下がる', '変わらない', '上がる'], answer: 0, set: { Qc: 0 }, look: '三角形は <var>P</var> = 400 kW・<var>Q</var> = 300 kvar・<var>S</var> = 500 kV·A（4 : 3 : 5）。力率は 0.8。' },
+      { text: '<var>Q</var><sub>c</sub> を 168 kvar にすると、有効電力 <var>P</var> は？', choices: ['減る', 'そのまま', '増える'], answer: 1, set: { Qc: 168 }, look: '<var>Q</var> が 132 kvar に減り、<var>S</var> は約 421 kV·A、力率は 0.95。<var>P</var> は 400 kW のまま。電流は約 84% に減る。' },
+      { text: '<var>Q</var><sub>c</sub> を 300 kvar（負荷の <var>Q</var> と同じ）にすると、力率は？', choices: ['0.95', '1', '進み'], answer: 1, set: { Qc: 300 }, look: '<var>Q</var> が 0 になり <var>S</var> = <var>P</var>、力率 1。電流は 80%、線路損失は 64% になる。' },
+      { text: '<var>Q</var><sub>c</sub> を 400 kvar（入れすぎ）にすると、力率は？', choices: ['1 のまま', '進みになって下がる', '遅れのまま上がる'], answer: 1, set: { Qc: 400 }, look: '三角形が下向きになり、進み力率（約 0.97）。入れすぎると力率はかえって下がる。' },
     ],
     quiz: [
       { q: '有効電力 400 kW、力率 0.8（遅れ）の負荷の無効電力は？', choices: ['240 kvar', '300 kvar', '320 kvar', '500 kvar'], answer: 1, why: '<var>S</var> = <var>P</var>/cos<var>θ</var> = 500 kV·A、sin<var>θ</var> = 0.6 なので <var>Q</var> = <var>S</var> sin<var>θ</var> = 300 kvar（<var>P</var> : <var>Q</var> : <var>S</var> = 4 : 3 : 5）。' },

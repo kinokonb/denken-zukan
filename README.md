@@ -9,7 +9,7 @@
 - Mac：`open -a "Microsoft Edge" https://kinokonb.github.io/denken-zukan/`。repoの `index.html` を直接開いても動く（その開き方ではオフライン保存はしない）。
 
 ## 今あるレッスン（v0.2）
-目次は 科目 › 単元 › 番号つきレッスン で、学ぶ順（前提になるものが先）に並ぶ。どのレッスンも「ことば → 動く図と計算結果 → やってみよう → つまみ → しくみ・式 → 確かめ問題 → 試験では」の形。
+目次は 科目 › 単元 › 番号つきレッスン で、学ぶ順（前提になるものが先）に並び、いちばん上から1タップで始められる（2回目からは前回の続き）。どのレッスンも「ことば → 動く図と計算結果 → やってみよう（予想を選ぶと図が動き、当たり外れと理由が出る）→ つまみ → しくみ・式 → 確かめ問題（ふり返り）→ 試験では」の形。
 
 | 番号 | 単元 | レッスン | 図 |
 |---|---|---|---|
@@ -38,7 +38,7 @@
 ### レッスンの足し方
 0. 資料（過去問題集、[AGENTS.md](AGENTS.md) の「資料」）でそのテーマの過去問を探し（`swift tools/reference.swift find <科目> <語>`）、問われ方・記号・単位・典型値を合わせる。本文・図・問題は写さない。
 1. `js/calc/` に計算を置き、`tests/calc.test.js` に教科書の値で確かめるテストを足す。
-2. `js/topics/` にレッスンを置く（`params`・`presets`・`compute`・`draw`・`caption`・`readouts`・`conditions`・`notesHtml`、初心者向けの `terms`（ことば）・`tries`（やってみよう：`set` は初期値からの変更）・`quiz`（3問、`answer` は正解の番号）・`exam`（試験では））。説明文（caption）は2行に収める。交流の時間変化や回転のように、動くこと自体に意味がある図だけ `motion: { draw(g, params, result, time) }` を足す（動く部分だけを描く。開いたら自動で動き、止める／動かすボタンが付く）。
+2. `js/topics/` にレッスンを置く（`params`・`presets`・`compute`・`draw`・`caption`・`readouts`・`conditions`・`notesHtml`、初心者向けの `terms`（ことば）・`tries`（やってみよう：問い `text`・予想の選択肢 `choices`・正解の番号 `answer`・`set` は初期値からの変更・`look` は結果の理由）・`quiz`（3問、`answer` は正解の番号）・`exam`（試験では））。説明文（caption）は2行に収める。交流の時間変化や回転のように、動くこと自体に意味がある図だけ `motion: { draw(g, params, result, time) }` を足す（動く部分だけを描く。開いたら自動で動き、止める／動かすボタンが付く）。
 3. `index.html` に `<script>`、`js/app.js` の `SUBJECTS` の単元に学ぶ順で登録（番号は自動）、`sw.js` の `ASSETS` に追加。
 4. `tools/sim/check.mjs` の `TOPICS`（動くなら `MOVING` にも）に追加。
 
