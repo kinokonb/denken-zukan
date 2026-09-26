@@ -7,6 +7,12 @@
   // 科目 › 単元 › レッスン。学ぶ順（前提になるものが先）に並べる。番号は科目ごとの通し番号
   const SUBJECTS = [
     {
+      id: 'kiso', mark: '基', name: '基礎', summary: '電気に要る数学と理科。知識ゼロから',
+      units: [
+        { name: '数と式', topics: [TopicMathFormula] },
+      ],
+    },
+    {
       id: 'riron', mark: '理', name: '理論', summary: '電気・磁気・回路の基本。ほかの3科目の土台',
       units: [
         { name: '直流回路', topics: [TopicOhm, TopicSeriesParallel, TopicElectricPower] },
@@ -105,8 +111,8 @@
     }
     return `
       <section class="start">
-        <p><strong>はじめての人へ</strong>　電験は理論が土台。理論1から順に進むと、ほかの科目の図も読めるようになる。</p>
-        <a class="start-link" href="#/topic/${ALL_TOPICS[0].topic.id}"><span class="start-label">はじめる</span>理論1　${ALL_TOPICS[0].topic.title} ›</a>
+        <p><strong>はじめての人へ</strong>　基礎（数学・理科）から順に進み、理論へ。理論が電験の土台で、ほかの科目の図も読めるようになる。</p>
+        <a class="start-link" href="#/topic/${ALL_TOPICS[0].topic.id}"><span class="start-label">はじめる</span>${ALL_TOPICS[0].subject.name}${ALL_TOPICS[0].number}　${ALL_TOPICS[0].topic.title} ›</a>
       </section>`;
   }
 

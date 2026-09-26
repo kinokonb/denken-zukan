@@ -16,7 +16,8 @@ const { chromium } = require('playwright');
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const outDir = path.resolve(process.argv[2] || os.tmpdir());
 const publishedUrl = process.argv[3];
-const TOPICS = ['ohm', 'series-parallel', 'electric-power', 'rlc', 'voltage-drop', 'induction-motor', 'power-factor'];
+const BASICS = ['math-formula']; // 基礎（数学・理科）：ミッションのないレッスン
+const TOPICS = [...BASICS, 'ohm', 'series-parallel', 'electric-power', 'rlc', 'voltage-drop', 'induction-motor', 'power-factor'];
 const MOVING = ['ohm', 'series-parallel', 'rlc', 'induction-motor']; // 開いたら自動で動くテーマ
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
@@ -217,7 +218,7 @@ async function checkMotion(page, id, label) {
 
 // ミッション：始める → 動かせるのは1つのつまみだけ → 目盛りを順に動かすと当たりが出る（欄の高さは変わらない）
 // → 次へ … 5問でクリアと記録 → 閉じると元に戻る。ミッションのないレッスンには入口がない
-const WITH_MISSIONS = TOPICS;
+const WITH_MISSIONS = TOPICS.filter((id) => !BASICS.includes(id));
 async function checkMissions(page, id, label) {
   const start = page.locator('.mission-start');
   if (!WITH_MISSIONS.includes(id)) {

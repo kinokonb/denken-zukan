@@ -22,6 +22,7 @@ const ASSETS = [
   'js/calc/induction-motor.js',
   'js/calc/power-factor.js',
   'js/calc/dc-circuit.js',
+  'js/topics/math-formula.js',
   'js/topics/ohm.js',
   'js/topics/series-parallel.js',
   'js/topics/electric-power.js',

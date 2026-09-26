@@ -483,6 +483,8 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .bar-part.q-current { fill: color-mix(in srgb, var(--q-current) 22%, var(--paper)); }
 .bar-part.q-active { fill: color-mix(in srgb, var(--q-active) 22%, var(--paper)); }
 .bar-part.alt { fill: color-mix(in srgb, currentColor 12%, var(--paper)); }
+.tile { fill: color-mix(in srgb, currentColor 18%, var(--paper)); stroke: currentColor; stroke-width: 1; stroke-opacity: 0.55; }
+.side { stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
 .area.q-active { fill: color-mix(in srgb, var(--q-active) 20%, var(--paper)); stroke: currentColor; stroke-width: 1.5; }
 .note.value { font-size: 13px; font-weight: 650; }
 
