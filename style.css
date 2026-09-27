@@ -349,6 +349,10 @@ input[type="range"]:focus-visible { outline-offset: 0; border-radius: 8px; }
 .stator { fill: none; stroke: var(--ink-3); stroke-width: 1.5; stroke-dasharray: 3 3; }
 .rotor { fill: color-mix(in srgb, var(--q-mech) 16%, var(--paper)); stroke: currentColor; stroke-width: 1.5; }
 .rotor-bar { stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
+/* 紙に垂直な向きの印：⊙（紙から手前へ）・⊗（紙の奥へ） */
+.dot-cross circle { fill: var(--paper); stroke: currentColor; stroke-width: 1.2; }
+.dot-cross .dot-cross-dot { fill: currentColor; stroke: none; }
+.dot-cross path { fill: none; stroke: currentColor; stroke-width: 1.2; }
 
 /* ---- レッスンの形：ことば・やってみよう・確かめ問題・試験では ----
    カードを並べず、1枚の紙を罫線で区切る（ノートと丸つけ）。 */

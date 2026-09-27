@@ -306,6 +306,18 @@
     return g;
   }
 
+  // 紙に垂直な向きの印：⊙（紙から手前へ）・⊗（紙の奥へ）。磁界や、横から見た電流の向きに使う
+  function dotCross(parent, x, y, out, { r = 5, cls = 'ink' } = {}) {
+    const g = el(parent, 'g', { class: `dot-cross ${cls}` });
+    el(g, 'circle', { cx: x, cy: y, r });
+    if (out) el(g, 'circle', { cx: x, cy: y, r: Math.max(1.4, r * 0.28), class: 'dot-cross-dot' });
+    else {
+      const d = r * 0.6;
+      el(g, 'path', { d: `M${x - d},${y - d}L${x + d},${y + d}M${x - d},${y + d}L${x + d},${y - d}` });
+    }
+    return g;
+  }
+
   // テスターの2本のリード線。測る部品のある側（上・下・左・右）の計器の縁から、部品の両端 ends へ少したるませて引く
   function leads(parent, [tx, ty], ends) {
     const cx = (ends[0][0] + ends[1][0]) / 2 - tx;
@@ -321,6 +333,6 @@
 
   global.Svg = {
     el, clear, paper, frame, arrow, label, note, angleArc, guide, polyline, wire, battery, acSource, resistor, coil, capacitor, flowDots, splitBar,
-    glowDefs, lamp, heater, fuse, breaker, knifeSwitch, gauge, leads,
+    glowDefs, lamp, heater, fuse, breaker, knifeSwitch, gauge, dotCross, leads,
   };
 })(this);

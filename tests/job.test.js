@@ -14,6 +14,7 @@ globalThis.Phasor = require('../js/calc/phasor.js');
 globalThis.RlcCircuit = require('../js/calc/rlc.js');
 globalThis.Capacitor = require('../js/calc/capacitor.js');
 globalThis.Coulomb = require('../js/calc/coulomb.js');
+globalThis.Magnetic = require('../js/calc/magnetic.js');
 globalThis.PlayKit = require('../js/plays/kit.js');
 const Job = require('../js/job.js');
 const lessons = [
@@ -29,6 +30,7 @@ const lessons = [
   ['交流の電力と力率', require('../js/plays/ac-power.js')],
   ['クーロンの法則と電界', require('../js/plays/coulomb.js')],
   ['平行平板コンデンサ', require('../js/plays/plate-capacitor.js')],
+  ['磁界と電磁力', require('../js/plays/magnetic-force.js')],
   ['RLC直列回路', require('../js/plays/rlc.js')],
   ['送電線の電圧降下', require('../js/plays/voltage-drop.js')],
   ['誘導電動機', require('../js/plays/induction-motor.js')],

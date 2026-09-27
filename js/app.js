@@ -19,7 +19,7 @@
       units: [
         { name: '直流回路', topics: [TopicOhm, TopicSeriesParallel, TopicElectricPower, TopicKirchhoff, TopicBridge, TopicInternalResistance] },
         { name: '交流回路', topics: [TopicAcRms, TopicPhasor, TopicRlcElements, TopicRlc, TopicAcPower] },
-        { name: '静電気と磁気', topics: [TopicCoulomb, TopicPlateCapacitor] },
+        { name: '静電気と磁気', topics: [TopicCoulomb, TopicPlateCapacitor, TopicMagneticForce] },
       ],
     },
     { id: 'denryoku', mark: '電', name: '電力', summary: '発電・変電・送電・配電', units: [{ name: '送電・配電', topics: [TopicVoltageDrop] }] },

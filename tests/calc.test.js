@@ -10,6 +10,7 @@ const AcWave = require('../js/calc/ac-wave.js');
 const Phasor = require('../js/calc/phasor.js');
 const Capacitor = require('../js/calc/capacitor.js');
 const Coulomb = require('../js/calc/coulomb.js');
+const Magnetic = require('../js/calc/magnetic.js');
 
 const near = (actual, expected, tolerance, label) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} は ${expected}±${tolerance} ではない`);
@@ -176,6 +177,16 @@ test('クーロンの法則：1 μC どうし 0.3 m で 0.1 N、距離2倍で 1/
   near(Coulomb.force(1, 1, 0.6), 0.025, 1e-12, '距離2倍');
   assert.ok(Coulomb.force(1, -1, 0.3) < 0);
   near(Coulomb.field(1, 0.3), 1e5, 1e-6, 'E');
+});
+
+test('磁界と電磁力：10 A から 0.1 m は H ≒ 15.9 A/m・B = 2 × 10⁻⁵ T。0.5 T・4 A・0.2 m で 0.4 N。平行電流は 1 A・1 m 間隔で 2 × 10⁻⁷ N/m、同じ向きは引き合う（負）、距離2倍で半分', () => {
+  near(Magnetic.field(10, 0.1), 15.915, 1e-3, 'H');
+  near(Magnetic.fluxDensity(10, 0.1), 2e-5, 1e-15, 'B');
+  near(Magnetic.force(0.5, 4, 0.2), 0.4, 1e-12, 'F = BIl');
+  near(Magnetic.parallelForce(1, 1, 1), -2e-7, 1e-18, '1 A・1 m');
+  near(Magnetic.parallelForce(100, 100, 0.1), -0.02, 1e-12, '100 A どうし 0.1 m');
+  near(Magnetic.parallelForce(100, 100, 0.2) / Magnetic.parallelForce(100, 100, 0.1), 0.5, 1e-12, '距離2倍で半分（2乗ではない）');
+  assert.ok(Magnetic.parallelForce(100, -100, 0.1) > 0, '反対向きは反発');
 });
 
 const motor = { V: 200, f: 50, poles: 4, r1: 0.3, x: 1.2 };
